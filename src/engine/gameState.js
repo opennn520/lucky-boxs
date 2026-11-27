@@ -104,9 +104,16 @@ export function getDeleteServicePrice() {
 }
 
 export function getCurrentRarityWeights() {
-  if (state.endless) return RARITY_WEIGHTS_BY_LEVEL[RARITY_WEIGHTS_BY_LEVEL.length - 1];
-  const idx = Math.min(state.levelIndex, RARITY_WEIGHTS_BY_LEVEL.length - 1);
-  return RARITY_WEIGHTS_BY_LEVEL[idx];
+  const base = state.endless
+    ? RARITY_WEIGHTS_BY_LEVEL[RARITY_WEIGHTS_BY_LEVEL.length - 1]
+    : RARITY_WEIGHTS_BY_LEVEL[Math.min(state.levelIndex, RARITY_WEIGHTS_BY_LEVEL.length - 1)];
+  if (!hasRelic('luckyPenny')) return base;
+  return {
+    '普通': base['普通'],
+    '罕见': base['罕见'],
+    '稀有': Number((base['稀有'] * 1.2).toFixed(2)),
+    '史诗': Number((base['史诗'] * 1.2).toFixed(2))
+  };
 }
 
 export function rollRarityByLevel(allowedRarities = ITEM_RARITY_ORDER) {
