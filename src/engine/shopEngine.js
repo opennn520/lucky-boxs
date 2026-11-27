@@ -55,11 +55,11 @@ export function generateNewShopVisit() {
   const allUtilityDisposables = Object.values(SHOP_UTILITY_DISPOSABLES_BY_RARITY).flat();
   const shopKeys = [];
 
-  // 若未合成「神秘装置」，60% 概率刷出 1 件未持有的几何摆件（方块/圆/三角）
+  // 若未合成「神秘装置」，22% 概率刷出 1 件未持有的几何摆件（方块/圆/三角）
   if (!hasRelic('mysteryDevice')) {
     const owned = getOwnedTypesSet();
     const missingGeo = GEO_TRIO_KEYS.filter(k => !owned.has(k));
-    if (missingGeo.length > 0 && Math.random() < 0.6) {
+    if (missingGeo.length > 0 && Math.random() < 0.22) {
       const geoPick = missingGeo[Math.floor(Math.random() * missingGeo.length)];
       usedKeys.add(geoPick);
       shopKeys.push(geoPick);
