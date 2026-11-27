@@ -39,8 +39,25 @@ export const state = {
   shopBoughtThisVisit: false,
   shopStock: { items: [], relics: [], deleteBought: false, deletePrice: 50 },
   pendingShopPlacement: null,
-  confirmMode: null // 'draft' | 'shop'
+  confirmMode: null, // 'draft' | 'shop'
+  lastTurnLog: null, // { total, gains: [{label, amount}], losses: [{label, amount}] }
+  relicStats: {} // { [relicId]: { turn: 0, total: 0 } }
 };
+
+export function resetRelicTurnStats() {
+  Object.keys(state.relicStats).forEach(k => {
+    state.relicStats[k].turn = 0;
+  });
+}
+
+export function recordRelicGain(relicId, amount) {
+  if (!amount || amount <= 0) return;
+  if (!state.relicStats[relicId]) {
+    state.relicStats[relicId] = { turn: 0, total: 0 };
+  }
+  state.relicStats[relicId].turn += amount;
+  state.relicStats[relicId].total += amount;
+}
 
 export function hasRelic(id) {
   return state.relics.some(r => r.id === id);
@@ -74,6 +91,7 @@ export function areAllColumnsFull() {
 export function getRecycleValue() {
   let val = hasRelic('vipCard') ? 6 : 2;
   if (hasRelic('recycleCoupon')) val += 3;
+  if (hasRelic('paperClip')) val += 1;
   return val;
 }
 
@@ -193,6 +211,8 @@ export function resetRunState({ endless = false } = {}) {
   state.shopVisitedThisVisit = false;
   state.shopBoughtThisVisit = false;
   state.pendingShopPlacement = null;
+  state.lastTurnLog = null;
+  state.relicStats = {};
 
   // 开局 4 个随机普通礼品，每列 1 个
   state.columns = [[], [], [], []];
@@ -235,7 +255,8 @@ export function saveGameToStorage() {
       shopLevel: state.shopLevel,
       shopVisitedThisVisit: state.shopVisitedThisVisit,
       shopBoughtThisVisit: state.shopBoughtThisVisit,
-      shopStock: state.shopStock
+      shopStock: state.shopStock,
+      relicStats: state.relicStats
     }
   };
   PlatformAdapter.setStorage(SAVE_STORAGE_KEY, JSON.stringify(payload));
