@@ -425,5 +425,14 @@ export const ICON_PATHS = {
     <text x="32" y="38" text-anchor="middle" font-size="16" font-weight="900" fill="#FFFBEB">1</text>`,
   eraser: `
     <rect x="14" y="20" width="36" height="24" rx="5" fill="#F472B6" stroke="#9D174D" stroke-width="2.4"/>
-    <rect x="32" y="20" width="18" height="24" rx="4" fill="#60A5FA" stroke="#1E40AF" stroke-width="2.4"/>`
+    <rect x="32" y="20" width="18" height="24" rx="4" fill="#60A5FA" stroke="#1E40AF" stroke-width="2.4"/>`,
+  goldPearl: `
+    <circle cx="32" cy="32" r="20" fill="#FDE047" stroke="#B45309" stroke-width="2.8"/>
+    <ellipse cx="25" cy="24" rx="5" ry="3.5" transform="rotate(-25 25 24)" fill="#FFFFFF" opacity="0.8"/>
+    <circle cx="32" cy="32" r="10" fill="none" stroke="#F59E0B" stroke-width="2" stroke-dasharray="3 2"/>`,
+  galaxyPearl: `
+    <circle cx="32" cy="32" r="21" fill="#F43F5E" stroke="#881337" stroke-width="2.8"/>
+    <ellipse cx="32" cy="32" rx="26" ry="8" transform="rotate(-22 32 32)" fill="none" stroke="#FECDD3" stroke-width="2.6"/>
+    <circle cx="25" cy="24" r="3.5" fill="#FFF1F2"/>
+    <circle cx="40" cy="38" r="2" fill="#FEF08A"/>`
 };
