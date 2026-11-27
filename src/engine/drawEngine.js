@@ -11,7 +11,9 @@ import {
   pickWeightedDraftChoices,
   removeItemFromColumns,
   trySpawnIntoColumn,
-  addFeverCharge
+  addFeverCharge,
+  resetRelicTurnStats,
+  recordRelicGain
 } from './gameState.js';
 
 const sleep = ms => new Promise(r => setTimeout(r, ms));
@@ -28,6 +30,7 @@ export async function executeDraw({ boardEngine, fxEngine, ui }) {
   state.isAnimating = true;
   state.drawsLeft--;
   state.spinsInLevel++;
+  ui.hideTurnPayoutBanner();
   ui.updateHUD();
 
   const isFeverTurn = state.feverTurns > 0;
@@ -63,23 +66,37 @@ export async function executeDraw({ boardEngine, fxEngine, ui }) {
   }
 
   // 2. 结算辅助器
+  resetRelicTurnStats();
+  const turnLog = { total: 0, gains: [], losses: [] };
   let turnTotal = 0;
   let comboCount = 0;
+  let negativeCount = 0;
   let destroyedCount = 0;
   let jackpotMult = 1;
   const consumedIndices = new Set();
   const boostedWorkers = new Set();
   const walletPos = ui.getWalletCenter();
-  const synergyRelicBonus = (hasRelic('windChime') ? 2 : 0) + (hasRelic('miniBell') ? 1 : 0);
+  const windChimeBonus = hasRelic('windChime') ? 2 : 0;
+  const miniBellBonus = hasRelic('miniBell') ? 1 : 0;
+  const synergyRelicBonus = windChimeBonus + miniBellBonus;
 
   const addSynergyHit = async (srcIdx, tgtIdx, rawBonus, label, beamColor = '#F59E0B', extraCharge = 14) => {
     comboCount++;
+    const srcItem = state.board[srcIdx];
+    const isCommonSrc = srcItem && SYMBOLS[srcItem.type]?.rarity === '普通';
+    // 普通品质物品不能增加暴走值
+    const actualCharge = isCommonSrc ? 0 : extraCharge;
+
     const withRelics = rawBonus + synergyRelicBonus;
     const finalBonus = Math.round(withRelics * feverMult * coreMult);
+    if (windChimeBonus > 0) recordRelicGain('windChime', Math.round(windChimeBonus * feverMult * coreMult));
+    if (miniBellBonus > 0) recordRelicGain('miniBell', Math.round(miniBellBonus * feverMult * coreMult));
+
     turnTotal += finalBonus;
     state.coins += finalBonus;
     state.totalEarned += finalBonus;
-    addFeverCharge(extraCharge);
+    turnLog.gains.push({ label, amount: finalBonus });
+    if (actualCharge > 0) addFeverCharge(actualCharge);
 
     const srcPos = boardEngine.getSlotScreenCenter(srcIdx);
     const tgtPos = boardEngine.getSlotScreenCenter(tgtIdx);
@@ -96,9 +113,11 @@ export async function executeDraw({ boardEngine, fxEngine, ui }) {
   };
 
   const addNegativePenalty = async (srcIdx, tgtIdx, rawLoss, label) => {
+    negativeCount++;
     const loss = Math.min(state.coins, rawLoss);
     state.coins = Math.max(0, state.coins - rawLoss);
     turnTotal -= loss;
+    turnLog.losses.push({ label, amount: rawLoss });
     const srcPos = boardEngine.getSlotScreenCenter(srcIdx);
     const tgtPos = boardEngine.getSlotScreenCenter(tgtIdx);
     if (srcIdx !== tgtIdx) fxEngine.spawnBeam(srcPos.x, srcPos.y, tgtPos.x, tgtPos.y, '#EF4444');
@@ -129,6 +148,8 @@ export async function executeDraw({ boardEngine, fxEngine, ui }) {
         turnTotal += thermosBonus;
         state.coins += thermosBonus;
         state.totalEarned += thermosBonus;
+        recordRelicGain('coffeeThermos', thermosBonus);
+        turnLog.gains.push({ label: '保温杯（耐久耗尽返还）', amount: thermosBonus });
         ui.spawnFloatText(idx, `保温杯 +${thermosBonus}`, false);
       }
       if (onBreak) await onBreak();
@@ -155,11 +176,15 @@ export async function executeDraw({ boardEngine, fxEngine, ui }) {
       const device = SPECIAL_RELICS.find(r => r.id === 'mysteryDevice');
       if (device) state.relics.push(device);
       sound.playVictory();
-      fxEngine.spawnConfetti(80);
+      fxEngine.spawnConfetti(100);
       ui.triggerShake(true);
-      ui.showToast('🌀 奇迹降临！三枚几何摆件融合为商店特殊遗物「神秘装置」(独立 ×1.25)！', 4200);
       ui.setTicker('🌀 方块 × 圆 × 三角融合成功！获得商店特殊遗物「神秘装置」！');
       ui.updateHUD();
+      if (ui.openMysteryDeviceModal && device) {
+        ui.openMysteryDeviceModal(device);
+      } else {
+        ui.showToast('🌀 奇迹降临！三枚几何摆件融合为商店特殊遗物「神秘装置」(独立 ×1.25)！', 4200);
+      }
       await sleep(state.fastMode ? 240 : 420);
     }
   }
@@ -270,12 +295,12 @@ export async function executeDraw({ boardEngine, fxEngine, ui }) {
         if (hit === 0) await addSynergyHit(i, i, 10 + magnetBonus, '甜品试吃券折现 +10🪙', '#EC4899', 12);
         else if (magnetBonus > 0) await addSynergyHit(i, i, magnetBonus, `金币磁铁额外吸附 +${magnetBonus}🪙`, '#EF4444', 4);
       } else if (item.type === 'redPacket') {
-        await addSynergyHit(i, i, 30 + magnetBonus, '年终奖红包拆开 +30🪙，暴走 +25%！', '#EF4444', 25);
+        await addSynergyHit(i, i, 45 + magnetBonus, '年终奖红包拆开 +45🪙，暴走 +20%！', '#EF4444', 20);
       } else if (item.type === 'blindVoucher') {
         state.drawsLeft++;
         await addSynergyHit(i, i, 12 + magnetBonus, '限时盲盒券生效 +12🪙，本关抽盒次数 +1！', '#8B5CF6', 12);
       } else if (item.type === 'goldBarBox') {
-        await addSynergyHit(i, i, 36 + magnetBonus, '金条礼盒变现 +36🪙！', '#D97706', 15);
+        await addSynergyHit(i, i, 55 + magnetBonus, '金条礼盒变现 +55🪙！', '#D97706', 15);
       } else if (item.type === 'dynamite') {
         let hit = 0;
         for (const nIdx of neighbors) {
@@ -321,9 +346,9 @@ export async function executeDraw({ boardEngine, fxEngine, ui }) {
         }
         ui.updateHUD();
       } else if (item.type === 'demolition') {
-        await addSynergyHit(i, i, 65 + magnetBonus, '拆迁补偿款到账！狂爆 +65🪙，暴走 +40%！', '#D97706', 40);
+        await addSynergyHit(i, i, 95 + magnetBonus, '拆迁补偿款到账！狂爆 +95🪙，暴走 +30%！', '#D97706', 30);
       } else if (item.type === 'mysteryCheck') {
-        const prize = 45 + Math.floor(Math.random() * 41);
+        const prize = 70 + Math.floor(Math.random() * 51);
         await addSynergyHit(i, i, prize + magnetBonus, `神秘支票兑现巨款 +${prize}🪙！`, '#10B981', 25);
       } else if (item.type === 'copyMirror') {
         let bestTarget = null;
@@ -354,7 +379,7 @@ export async function executeDraw({ boardEngine, fxEngine, ui }) {
       continue;
     }
 
-    // 吃货流
+    // 吃货流（普通品质不加暴走）
     if (item.type === 'cat') {
       const catRelic = hasRelic('catBell') ? 4 : 0;
       for (const nIdx of neighbors) {
@@ -362,10 +387,12 @@ export async function executeDraw({ boardEngine, fxEngine, ui }) {
         if (!target || consumedIndices.has(nIdx)) continue;
         if (target.type === 'fish') {
           item.bonusBase += 1;
-          await addSynergyHit(i, nIdx, 7 + catRelic, '橘猫咬了一口小鱼干！+7🪙 且永久基础 +1', '#F97316', 12);
+          if (catRelic > 0) recordRelicGain('catBell', Math.round(catRelic * feverMult * coreMult));
+          await addSynergyHit(i, nIdx, 4 + catRelic, '橘猫咬了一口小鱼干！+4🪙 且永久基础 +1', '#F97316', 0);
           await consumeDurability(nIdx);
         } else if (target.type === 'milk') {
-          await addSynergyHit(i, nIdx, 8 + catRelic, '橘猫喝了一口牛奶！+8🪙 且暴走 +12%', '#38BDF8', 12);
+          if (catRelic > 0) recordRelicGain('catBell', Math.round(catRelic * feverMult * coreMult));
+          await addSynergyHit(i, nIdx, 5 + catRelic, '橘猫喝了一口牛奶！+5🪙', '#38BDF8', 0);
           await consumeDurability(nIdx);
         }
       }
@@ -378,14 +405,16 @@ export async function executeDraw({ boardEngine, fxEngine, ui }) {
         const target = state.board[nIdx];
         if (!target || consumedIndices.has(nIdx)) continue;
         if (target.type === 'ore') {
-          await addSynergyHit(i, nIdx, 8 + minerRelic, '矿工敲击原矿！爆出 +8🪙', '#0EA5E9', 12);
+          if (minerRelic > 0) recordRelicGain('minerLamp', Math.round(minerRelic * feverMult * coreMult));
+          await addSynergyHit(i, nIdx, 4 + minerRelic, '矿工敲击原矿！爆出 +4🪙', '#0EA5E9', 0);
           await consumeDurability(nIdx, async () => {
-            await addSynergyHit(nIdx, i, 12, '原矿碎裂！额外爆出 +12🪙 尾矿大奖！', '#38BDF8', 15);
+            await addSynergyHit(nIdx, i, 15, '原矿碎裂！额外爆出 +15🪙 尾矿大奖！', '#38BDF8', 0);
           });
         } else if (target.type === 'chest') {
-          await addSynergyHit(i, nIdx, 16 + minerRelic, '矿工撬开宝箱！爆出 +16🪙', '#F59E0B', 15);
+          if (minerRelic > 0) recordRelicGain('minerLamp', Math.round(minerRelic * feverMult * coreMult));
+          await addSynergyHit(i, nIdx, 12 + minerRelic, '矿工撬开宝箱！爆出 +12🪙', '#F59E0B', 0);
           await consumeDurability(nIdx, async () => {
-            await addSynergyHit(nIdx, i, 25, '宝箱彻底清空！额外狂爆 +25🪙 终极宝藏！', '#D97706', 20);
+            await addSynergyHit(nIdx, i, 22, '宝箱彻底清空！额外狂爆 +22🪙 终极宝藏！', '#D97706', 0);
           });
         } else if (target.type === 'coffee' || target.type === 'boba') {
           await addNegativePenalty(i, nIdx, 5, '矿坑打翻饮料！清理费 -5🪙');
@@ -393,17 +422,19 @@ export async function executeDraw({ boardEngine, fxEngine, ui }) {
       }
     }
 
-    // 摸鱼流（含负面：相邻橘猫上班摸鱼 -4🪙）
+    // 摸鱼流（喝冰美式只 ×2 不加 9，笔记本 +2，负面橘猫 -4）
     if (item.type === 'worker') {
       for (const nIdx of neighbors) {
         const target = state.board[nIdx];
         if (!target || consumedIndices.has(nIdx)) continue;
         if (target.type === 'coffee') {
           boostedWorkers.add(i);
-          await addSynergyHit(i, nIdx, 9, '打工人猛吸冰美式！+9🪙 且本轮产出 ×2', '#92400E', 14);
+          boardEngine.pulseCell(i, '#92400E');
+          ui.spawnFloatText(i, '☕ 产出×2!', false);
+          ui.setTicker('打工人猛吸冰美式！本轮产出 ×2');
           await consumeDurability(nIdx);
         } else if (target.type === 'laptop') {
-          await addSynergyHit(i, nIdx, 6, '打工人敲响笔记本！高效产出 +6🪙', '#64748B', 10);
+          await addSynergyHit(i, nIdx, 2, '打工人敲响笔记本！产出 +2🪙', '#64748B', 0);
         } else if (target.type === 'cat') {
           await addNegativePenalty(i, nIdx, 4, '打工人上班偷撸橘猫！效率下降 -4🪙');
         }
@@ -413,11 +444,12 @@ export async function executeDraw({ boardEngine, fxEngine, ui }) {
     // 甜品流
     if (item.type === 'boba') {
       const sweetBonus = hasRelic('sweetApron') ? 4 : 0;
-      const sweetCharge = hasRelic('sweetApron') ? 20 : 15;
       for (const nIdx of neighbors) {
         const target = state.board[nIdx];
         if (target && !consumedIndices.has(nIdx) && target.type === 'cake') {
-          await addSynergyHit(i, nIdx, 10 + sweetBonus, '珍珠奶茶×草莓蛋糕甜蜜套餐！+10🪙 且暴走 +15%', '#EC4899', sweetCharge);
+          if (sweetBonus > 0) recordRelicGain('sweetApron', Math.round(sweetBonus * feverMult * coreMult));
+          await addSynergyHit(i, nIdx, 6 + sweetBonus, '珍珠奶茶×草莓蛋糕甜蜜套餐！+6🪙', '#EC4899', 0);
+          addFeverCharge(hasRelic('sweetApron') ? 17 : 12);
           await consumeDurability(nIdx);
         }
       }
@@ -427,13 +459,13 @@ export async function executeDraw({ boardEngine, fxEngine, ui }) {
     if (item.type === 'hen') {
       if (Math.random() < 0.4) {
         const sc = trySpawnIntoColumn(colIdx, 'egg');
-        const msg = sc !== -1 ? `母鸡在${COL_NAMES[sc]}下了一枚鸡蛋！` : '背包已满，鸡蛋折现 +6🪙！';
-        await addSynergyHit(i, i, sc !== -1 ? 2 : 6, msg, '#FB7185', 10);
+        const msg = sc !== -1 ? `母鸡在${COL_NAMES[sc]}下了一枚鸡蛋！` : '背包已满，鸡蛋折现 +4🪙！';
+        await addSynergyHit(i, i, sc !== -1 ? 1 : 4, msg, '#FB7185', 0);
       }
       for (const nIdx of neighbors) {
         const target = state.board[nIdx];
         if (target && !consumedIndices.has(nIdx) && target.type === 'egg') {
-          await addSynergyHit(nIdx, i, 5, '母鸡孵暖鸡蛋！+5🪙', '#F59E0B', 10);
+          await addSynergyHit(nIdx, i, 3, '母鸡孵暖鸡蛋！+3🪙', '#F59E0B', 0);
           await consumeDurability(nIdx, async () => {
             const hatchType = Math.random() < 0.45 ? 'goldenEgg' : 'cat';
             trySpawnIntoColumn(nIdx % NUM_COLS, hatchType);
@@ -474,7 +506,8 @@ export async function executeDraw({ boardEngine, fxEngine, ui }) {
     if (item.type === 'milk') {
       const hasCat = neighbors.some(nIdx => state.board[nIdx] && !consumedIndices.has(nIdx) && state.board[nIdx].type === 'cat');
       if (!hasCat) {
-        await addNegativePenalty(i, i, 5, '牛奶旁边没有橘猫，变质倒掉 -5🪙');
+        await addNegativePenalty(i, i, 1, '牛奶旁边没有橘猫，变质倒掉 -1🪙 且耐久 -1');
+        await consumeDurability(i);
       }
     }
 
@@ -555,9 +588,10 @@ export async function executeDraw({ boardEngine, fxEngine, ui }) {
         const target = state.board[nIdx];
         if (!target || consumedIndices.has(nIdx)) continue;
         if (target.type === 'bone') {
-          await addSynergyHit(i, nIdx, 9 + catRelic, '柴犬啃了一口大骨头！+9🪙', '#F59E0B', 12);
+          if (catRelic > 0) recordRelicGain('catBell', Math.round(catRelic * feverMult * coreMult));
+          await addSynergyHit(i, nIdx, 5 + catRelic, '柴犬啃了一口大骨头！+5🪙', '#F59E0B', 0);
           await consumeDurability(nIdx, async () => {
-            await addSynergyHit(nIdx, i, 14, '大骨头啃完啦！额外爆出 +14🪙 骨髓奖！', '#D97706', 14);
+            await addSynergyHit(nIdx, i, 10, '大骨头啃完啦！额外爆出 +10🪙 骨髓奖！', '#D97706', 0);
           });
         } else if (target.type === 'cat') {
           await addNegativePenalty(i, nIdx, 5, '柴犬与橘猫打架啦！损失 -5🪙');
@@ -778,21 +812,44 @@ export async function executeDraw({ boardEngine, fxEngine, ui }) {
     }
   }
 
-  // 各类摆件保底补贴
-  if (hasRelic('coinBox')) baseSum += Math.round(3 * feverMult * coreMult);
-  if (hasRelic('piggyCharm')) baseSum += Math.round(4 * feverMult * coreMult);
-  if (hasRelic('stampedCoin')) baseSum += Math.round(2 * feverMult * coreMult);
-  if (hasRelic('coinPouch')) baseSum += emptyCount;
-  if (hasRelic('starCharm') && comboCount === 0) baseSum += Math.round(8 * feverMult * coreMult);
+  // 各类摆件保底补贴（并逐一记入遗物收益统计与本轮明细）
+  const addRelicFlat = (id, label, rawAmt, applyMult = true) => {
+    if (!hasRelic(id) || rawAmt <= 0) return;
+    const amt = applyMult ? Math.round(rawAmt * feverMult * coreMult) : rawAmt;
+    if (amt <= 0) return;
+    baseSum += amt;
+    recordRelicGain(id, amt);
+    turnLog.gains.push({ label: `摆件「${label}」`, amount: amt });
+  };
+
+  if (baseSum > 0) {
+    turnLog.gains.push({ label: '盘面物品基础与倍率产出', amount: baseSum });
+  }
+
+  addRelicFlat('coinBox', '零钱收纳盒', 3);
+  addRelicFlat('piggyCharm', '招财猪挂件', 4);
+  addRelicFlat('woodenCoin', '木头硬币', 1);
+  addRelicFlat('stampedCoin', '印花金币', 2);
+  addRelicFlat('coinPouch', '幸运硬币袋', emptyCount, false);
+  if (comboCount === 0) addRelicFlat('starCharm', '许愿星挂坠', 8);
+  if (comboCount > 0) addRelicFlat('tinyBell', '小铜铃', 2);
+  if (negativeCount > 0) addRelicFlat('eraser', '橡皮擦', 2, false);
+  if (hasRelic('luckyPenny')) {
+    const commonCnt = Math.min(
+      4,
+      state.board.filter((it, idx) => it && !consumedIndices.has(idx) && SYMBOLS[it.type].rarity === '普通').length
+    );
+    addRelicFlat('luckyPenny', '幸运便士', commonCnt, false);
+  }
   if (hasRelic('goldenClover')) {
     const multItemsCount = state.board.filter(
       (it, idx) => it && !consumedIndices.has(idx) && SYMBOLS[it.type].isMult
     ).length;
-    if (multItemsCount > 0) baseSum += Math.round(multItemsCount * 3 * feverMult * coreMult);
+    addRelicFlat('goldenClover', '四叶金草', multItemsCount * 3);
   }
   if (hasRelic('luckyDice')) {
     const allDiverse = state.columns.every(col => new Set(col.map(it => it.type)).size >= 2);
-    if (allDiverse) baseSum += Math.round(6 * feverMult * coreMult);
+    if (allDiverse) addRelicFlat('luckyDice', '幸运骰子', 6);
   }
 
   if (baseSum > 0) {
@@ -817,6 +874,8 @@ export async function executeDraw({ boardEngine, fxEngine, ui }) {
     turnTotal += prismBonus;
     state.coins += prismBonus;
     state.totalEarned += prismBonus;
+    recordRelicGain('rainbowPrism', prismBonus);
+    turnLog.gains.push({ label: '摆件「彩虹棱镜」(×1.25)', amount: prismBonus });
     ui.showToast(`🌈 彩虹棱镜折射！本轮额外 +${prismBonus}🪙`, 2000);
     ui.updateHUD();
   }
@@ -827,6 +886,8 @@ export async function executeDraw({ boardEngine, fxEngine, ui }) {
     turnTotal += deviceBonus;
     state.coins += deviceBonus;
     state.totalEarned += deviceBonus;
+    recordRelicGain('mysteryDevice', deviceBonus);
+    turnLog.gains.push({ label: '商店特殊「神秘装置」(独立×1.25)', amount: deviceBonus });
     ui.showToast(`🌀 神秘装置独立增幅 ×1.25！额外 +${deviceBonus}🪙`, 2000);
     ui.updateHUD();
   }
@@ -844,36 +905,41 @@ export async function executeDraw({ boardEngine, fxEngine, ui }) {
     turnTotal += 4;
     state.coins += 4;
     state.totalEarned += 4;
+    recordRelicGain('miniCalc', 4);
+    turnLog.gains.push({ label: '摆件「便携计算器」', amount: 4 });
     ui.updateHUD();
   }
 
   if (turnTotal > state.bestTurn) state.bestTurn = turnTotal;
+  turnLog.total = turnTotal;
+  state.lastTurnLog = turnLog;
 
-  ui.showTurnPayoutBanner(`本轮 +${turnTotal} 🪙${isFeverTurn ? ` (暴走×${feverMult}!)` : ''}`);
+  ui.showTurnPayoutBanner(`📊 本轮 ${turnTotal >= 0 ? '+' : ''}${turnTotal} 🪙${isFeverTurn ? ` (暴走×${feverMult}!)` : ''} · 点看明细`);
 
   if (turnTotal >= 32) {
     ui.triggerShake(turnTotal >= 80);
     PlatformAdapter.vibrate(38);
   }
 
-  // 4. 暴走触发与倒计时
+  // 4. 每回合结束基础暴走 +15%，以及暴走触发与倒计时
   if (isFeverTurn) {
     state.feverTurns--;
-  } else if (state.feverCharge >= 100) {
-    state.feverCharge = 0;
-    state.feverTurns = 3;
-    state.feverCount++;
-    sound.playFever();
-    fxEngine.spawnConfetti(55);
-    ui.triggerShake(true);
-    PlatformAdapter.vibrate([30, 40, 60]);
-    ui.setTicker(`🔥 超级暴走启动！接下来 3 回合全收益 ×${hasRelic('feverCrown') ? '3' : '2'}！`);
+  } else {
+    addFeverCharge(15);
+    if (state.feverCharge >= 100) {
+      state.feverCharge = 0;
+      state.feverTurns = 3;
+      state.feverCount++;
+      sound.playFever();
+      fxEngine.spawnConfetti(55);
+      ui.triggerShake(true);
+      PlatformAdapter.vibrate([30, 40, 60]);
+      ui.setTicker(`🔥 超级暴走启动！接下来 3 回合全收益 ×${hasRelic('feverCrown') ? '3' : '2'}！`);
+    }
   }
   ui.updateHUD();
 
   await sleep(state.fastMode ? 280 : 440);
-  ui.hideTurnPayoutBanner();
-
   state.isAnimating = false;
   ui.updateHUD();
 
