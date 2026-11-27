@@ -5,7 +5,7 @@ export const MAX_COL_CAP = 9;
 export const COL_NAMES = ['第1列', '第2列', '第3列', '第4列'];
 
 export const ITEM_RARITY_ORDER = ['普通', '罕见', '稀有', '史诗', '商店专属'];
-export const RELIC_RARITY_ORDER = ['普通', '罕见', '稀有', '史诗', '商店专属', '商店特殊'];
+export const RELIC_RARITY_ORDER = ['普通', '罕见', '稀有', '史诗', '神话', '商店专属', '商店特殊'];
 
 // 全场景统一的稀有度颜色系统（Canvas 边框 + DOM 卡片边框 + 徽章）
 export const RARITY_STYLES = {
@@ -56,5 +56,13 @@ export const RARITY_STYLES = {
     glowHex: 'rgba(16, 185, 129, 0.65)',
     twBorder: 'border-emerald-500',
     twBg: 'rarity-wave-green-card'
+  },
+  '神话': {
+    badge: 'rarity-wave-red-badge text-white border border-rose-300',
+    borderHex: '#E11D48',
+    bgHex: '#FFE4E6',
+    glowHex: 'rgba(244, 63, 94, 0.7)',
+    twBorder: 'border-rose-500',
+    twBg: 'rarity-wave-red-card'
   }
 };
