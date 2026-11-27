@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <title>幸运盒子 (Lucky Boxs) v1.53</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="./styles/main.css" />
+</head>
+<body class="flex justify-center items-center">
+  <!-- 暴走全屏流光边框 (z-index: 5) -->
+  <div id="feverScreenBorder"></div>
+
+  <!-- 全屏 60fps 粒子、连线与礼花特效画布 (z-index: 20) -->
+  <canvas id="fxCanvas" class="fixed inset-0 pointer-events-none z-20"></canvas>
+
+  <!-- 顶部浮动 Toast 提示 (z-index: 140，高对比度不透明底色) -->
+  <div id="toastBanner" class="fixed top-3 left-1/2 -translate-x-1/2 -translate-y-24 opacity-0 z-[140] w-[92%] max-w-[390px] px-4 py-3 rounded-2xl bg-[#2B2118] text-amber-50 border-2 border-amber-400 text-[13px] font-extrabold shadow-2xl text-center leading-relaxed pointer-events-none">
+    提示信息
+  </div>
+
+  <!-- =========================================================
+       主界面 (Main Menu)
+       ========================================================= -->
+  <section id="mainMenuScreen" class="w-full max-w-[440px] h-[100dvh] flex flex-col items-center justify-between px-6 py-10 relative z-30">
+    <div class="text-xs font-extrabold tracking-widest uppercase text-sub opacity-80">
+      Lucky Boxs · v1.53
+    </div>
+
+    <div class="flex flex-col items-center text-center gap-4">
+      <div class="logo-float w-36 h-36 rounded-[36px] theme-card flex items-center justify-center relative shadow-xl">
+        <svg viewBox="0 0 120 120" class="w-28 h-28" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="60" cy="64" r="44" fill="#FEF3C7" />
+          <rect x="26" y="48" width="68" height="50" rx="14" fill="#FBBF24" stroke="#D97706" stroke-width="3.5"/>
+          <rect x="20" y="34" width="80" height="20" rx="9" fill="#FDE68A" stroke="#D97706" stroke-width="3.5"/>
+          <rect x="52" y="34" width="16" height="64" rx="4" fill="#FF6B8B" stroke="#E11D48" stroke-width="2.5"/>
+          <path d="M60 34 C46 16, 30 24, 42 34" fill="#FF85A1" stroke="#E11D48" stroke-width="3" stroke-linecap="round"/>
+          <path d="M60 34 C74 16, 90 24, 78 34" fill="#FF85A1" stroke="#E11D48" stroke-width="3" stroke-linecap="round"/>
+          <circle cx="60" cy="34" r="6" fill="#FB7185" stroke="#E11D48" stroke-width="2.5"/>
+          <circle cx="40" cy="72" r="3.5" fill="#4A3B2C"/>
+          <circle cx="80" cy="72" r="3.5" fill="#4A3B2C"/>
+          <path d="M55 77 Q60 82 65 77" stroke="#4A3B2C" stroke-width="3" stroke-linecap="round"/>
+          <path d="M18 22 L21 15 L24 22 L31 25 L24 28 L21 35 L18 28 L11 25 Z" fill="#F59E0B"/>
+          <path d="M98 18 L100 13 L102 18 L107 20 L102 22 L100 27 L98 22 L93 20 Z" fill="#FF6B8B"/>
+        </svg>
+      </div>
+
+      <div>
+        <h1 class="text-3xl font-black tracking-tight text-main">幸运盒子</h1>
+        <p class="text-sm font-extrabold text-accent tracking-wider mt-0.5">LUCKY BOXS</p>
+        <p id="mainMenuTip" class="text-xs font-semibold text-sub mt-2 max-w-[300px] leading-relaxed px-3 py-1.5 rounded-2xl theme-sub-bg">
+          💡 小贴士：把招财猫放进中间两列，最多可辐射周围 8 格！
+        </p>
+      </div>
+    </div>
+
+    <div class="w-full max-w-[300px] flex flex-col gap-2.5">
+      <button id="menuContinueBtn" class="hidden ios-btn w-full py-3.5 px-4 rounded-[22px] bg-emerald-500 text-white shadow-lg font-extrabold text-base flex flex-col items-center justify-center">
+        <div class="flex items-center gap-1.5"><span>▶️</span><span>继续游戏</span></div>
+        <span id="menuContinueMeta" class="text-[10px] font-bold text-emerald-100 mt-0.5">第 1/5 关 · 0/65 🪙</span>
+      </button>
+      <button id="menuStartBtn" class="ios-btn primary-cta w-full py-3.5 rounded-[22px] font-extrabold text-lg tracking-wide flex items-center justify-center gap-2">
+        <span>🚀</span><span>开始游戏</span>
+      </button>
+      <button id="menuSettingsBtn" class="ios-btn theme-pill w-full py-3 rounded-[20px] font-extrabold text-sm flex items-center justify-center gap-2">
+        <span>⚙️</span><span>设置与图鉴</span>
+      </button>
+      <button id="menuExitBtn" class="ios-btn theme-sub-bg w-full py-2.5 rounded-[20px] font-bold text-xs text-sub flex items-center justify-center gap-1.5">
+        <span>👋</span><span>退出游戏</span>
+      </button>
+    </div>
+
+    <div class="text-[11px] font-semibold text-sub opacity-70">
+      全新商店系统 · 稀有度边框 · 删除次数规划
+    </div>
+  </section>
+
+  <!-- =========================================================
+       游戏主界面 (零多余空隙 · 紧密和谐竖屏布局)
+       ========================================================= -->
+  <div id="gameScreen" class="hidden flex-col relative z-10">
+
+    <!-- 1. 顶部标题与设置栏 -->
+    <header class="flex flex-col gap-2 shrink-0">
+      <div class="flex items-center justify-between gap-2">
+        <div class="flex items-center gap-1.5 min-w-0">
+          <span class="text-sm font-black tracking-tight text-main shrink-0">🎁 幸运盒子</span>
+          <span id="levelBadge" class="px-2.5 py-0.5 rounded-full theme-sub-bg text-[11px] font-extrabold text-main truncate">
+            第 1/5 关 · 交水电费
+          </span>
+        </div>
+
+        <button id="inGameSettingsBtn" class="ios-btn theme-pill px-3 py-1.5 rounded-full text-xs font-extrabold flex items-center gap-1 shrink-0">
+          <span>⚙️</span><span>设置</span>
+        </button>
+      </div>
+
+      <!-- 暴走横幅 -->
+      <div id="feverBanner" class="hidden w-full py-1 px-3 rounded-full bg-gradient-to-r from-amber-500 via-rose-500 to-orange-500 text-white text-[11px] font-extrabold text-center fever-pulse shadow-md">
+        🔥 狂热暴走中 ×<span id="feverMultText">2</span> · 剩余 <span id="feverTurnsText">3</span> 回合 🔥
+      </div>
+
+      <!-- 饱满 HUD 卡片 -->
+      <div class="theme-card px-3.5 py-3 flex flex-col gap-2">
+        <div class="flex items-end justify-between gap-2">
+          <div id="walletTarget" class="flex flex-col">
+            <span class="text-[11px] font-semibold text-sub">当前金币 / 本关目标</span>
+            <div class="flex items-baseline gap-1 mt-0.5">
+              <span class="text-lg leading-none">🪙</span>
+              <span id="coinDisplay" class="text-[28px] leading-none font-black tracking-tight text-main tabular-nums">0</span>
+              <span class="text-xs font-extrabold text-sub">/ <span id="targetDisplay">65</span></span>
+            </div>
+          </div>
+
+          <div class="flex flex-col items-end">
+            <span class="text-[11px] font-semibold text-sub">剩余抽盒</span>
+            <div class="flex items-baseline gap-0.5 mt-0.5">
+              <span id="drawsDisplay" class="text-[26px] leading-none font-black text-accent tabular-nums">5</span>
+              <span class="text-xs font-bold text-sub">次</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 目标进度条 -->
+        <div class="w-full h-2 theme-sub-bg rounded-full overflow-hidden">
+          <div id="rentProgress" class="h-full rounded-full transition-all duration-500 ease-out" style="width: 0%; background: linear-gradient(90deg, var(--accent-grad-1), var(--accent-grad-2));"></div>
+        </div>
+
+        <!-- 暴走槽 + 领礼倒计时胶囊 -->
+        <div class="flex items-center justify-between gap-2">
+          <div class="flex items-center gap-1.5 flex-1 min-w-0">
+            <span class="text-[11px] font-extrabold text-orange-500 whitespace-nowrap">⚡ 暴走</span>
+            <div class="flex-1 h-2 theme-sub-bg rounded-full overflow-hidden">
+              <div id="feverProgress" class="h-full bg-gradient-to-r from-pink-400 via-orange-400 to-amber-400 rounded-full transition-all duration-300" style="width: 0%"></div>
+            </div>
+            <span id="feverPercent" class="text-[10px] font-extrabold text-sub w-7 text-right tabular-nums">0%</span>
+          </div>
+
+          <div id="giftCadencePill" class="px-2.5 py-0.5 rounded-full bg-amber-500 text-white text-[10px] font-extrabold whitespace-nowrap shrink-0">
+            🎁 本次抽完领 2 礼
+          </div>
+        </div>
+
+        <!-- 宽敞幸运摆件栏 -->
+        <div id="relicBar" class="flex items-center gap-2 pt-2 border-t border-black/5 overflow-x-auto thin-scroll min-h-[42px]">
+          <span class="text-[11px] font-extrabold text-sub shrink-0">✨ 摆件:</span>
+          <div id="relicList" class="flex items-center gap-1.5">
+            <span class="text-[11px] text-sub opacity-75">过关或逛商店可获得强力幸运摆件</span>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- 2. 中央弹性棋盘区 -->
+    <main class="flex-1 min-h-0 flex flex-col justify-center gap-1.5">
+      <div id="boardCard" class="theme-card board-frame p-2.5 w-full flex-1 min-h-0 max-h-[420px] relative flex flex-col gap-2">
+        <div id="turnPayoutBanner" class="absolute -top-3.5 left-1/2 -translate-x-1/2 px-3.5 py-1 rounded-full bg-gray-900 text-white text-xs font-extrabold shadow-md opacity-0 transition-all duration-300 pointer-events-none whitespace-nowrap z-20">
+          本轮 +0 🪙
+        </div>
+
+        <!-- 4 列独立表头 -->
+        <div class="grid grid-cols-4 gap-1.5 shrink-0">
+          <button data-col-header="0" class="ios-btn theme-sub-bg py-1.5 px-1 rounded-xl flex items-center justify-center gap-1 text-[11px] font-bold text-main">
+            <span>第1列</span>
+            <span id="colCount0" class="px-1.5 py-0.5 rounded-full bg-white/85 text-[9px] font-extrabold text-accent tabular-nums">1/9</span>
+          </button>
+          <button data-col-header="1" class="ios-btn theme-sub-bg py-1.5 px-1 rounded-xl flex items-center justify-center gap-1 text-[11px] font-bold text-main">
+            <span>第2列</span>
+            <span id="colCount1" class="px-1.5 py-0.5 rounded-full bg-white/85 text-[9px] font-extrabold text-accent tabular-nums">1/9</span>
+          </button>
+          <button data-col-header="2" class="ios-btn theme-sub-bg py-1.5 px-1 rounded-xl flex items-center justify-center gap-1 text-[11px] font-bold text-main">
+            <span>第3列</span>
+            <span id="colCount2" class="px-1.5 py-0.5 rounded-full bg-white/85 text-[9px] font-extrabold text-accent tabular-nums">1/9</span>
+          </button>
+          <button data-col-header="3" class="ios-btn theme-sub-bg py-1.5 px-1 rounded-xl flex items-center justify-center gap-1 text-[11px] font-bold text-main">
+            <span>第4列</span>
+            <span id="colCount3" class="px-1.5 py-0.5 rounded-full bg-white/85 text-[9px] font-extrabold text-accent tabular-nums">1/9</span>
+          </button>
+        </div>
+
+        <!-- 4×3 高分屏自适应 Canvas 容器 -->
+        <div id="canvasWrapper" class="w-full flex-1 min-h-[210px] relative rounded-[16px] overflow-hidden cursor-pointer">
+          <canvas id="boardCanvas" class="w-full h-full block"></canvas>
+        </div>
+      </div>
+
+      <!-- 实时播报条 -->
+      <div id="statusTicker" class="h-5 shrink-0 text-[11px] font-semibold text-sub text-center truncate w-full px-2">
+        点击任意非空格子可查看详情与耐久，点击「开抽！」开启暴富之路 ✨
+      </div>
+    </main>
+
+    <!-- 3. 底部操作栏：背包 + 商店 + 开抽 -->
+    <footer class="flex flex-col gap-1.5 shrink-0 pb-0.5">
+      <button id="pendingDraftPill" class="hidden ios-btn pending-bounce w-full py-1.5 px-3 rounded-2xl bg-amber-100 border border-amber-300 text-amber-900 text-xs font-extrabold flex items-center justify-center gap-1.5 shadow-sm">
+        <span>🎁</span>
+        <span id="pendingDraftText">有待领礼品 (1)</span>
+        <span class="px-2 py-0.5 rounded-full bg-amber-500 text-white text-[10px]">去领取</span>
+      </button>
+
+      <div class="flex items-stretch gap-2">
+        <button id="backpackBtn" class="ios-btn theme-pill px-3 py-2.5 rounded-[20px] flex flex-col items-center justify-center min-w-[82px] shrink-0 border-2 border-amber-200/75">
+          <div class="flex items-center gap-1 text-xs font-extrabold text-main">
+            <span>🎒</span><span>背包</span>
+          </div>
+          <span id="backpackCountText" class="text-[10px] font-extrabold text-accent tabular-nums">4/36 · 删3</span>
+        </button>
+
+        <!-- 主操作条：未开店时为完整「开抽！」；开店后分裂为「商店 | 抽奖」 -->
+        <div id="primaryActionGroup" class="flex-1 flex items-stretch rounded-[20px] overflow-hidden shadow-md">
+          <button id="shopBtn" class="hidden ios-btn shop-open-btn flex-1 py-3 px-2 font-extrabold text-base tracking-wide flex items-center justify-center gap-1 border-r border-white/30">
+            <span>🏪</span>
+            <span id="shopStatusText">商店</span>
+          </button>
+
+          <button id="drawBtn" class="ios-btn primary-cta flex-1 py-3 px-2 font-extrabold text-lg tracking-wide flex items-center justify-center gap-1.5">
+            <span>🎁</span>
+            <span id="drawBtnText">开抽！</span>
+          </button>
+        </div>
+      </div>
+    </footer>
+  </div>
+
+  <!-- =========================================================
+       弹窗区 (统一 z-index >= 100)
+       ========================================================= -->
+
+  <!-- 统一设置中心 -->
+  <div id="settingsModal" class="hidden fixed inset-0 z-[100] modal-backdrop flex items-end sm:items-center justify-center p-4">
+    <div class="modal-sheet theme-card w-full max-w-[390px] max-h-[86dvh] p-5 flex flex-col gap-4 overflow-y-auto thin-scroll">
+      <div class="flex items-center justify-between">
+        <div>
+          <h2 class="text-lg font-extrabold text-main">⚙️ 设置与图鉴</h2>
+          <p class="text-xs text-sub">偏好自动保存，随时可调</p>
+        </div>
+        <button id="closeSettingsBtn" class="ios-btn theme-sub-bg w-8 h-8 rounded-full text-sub font-bold flex items-center justify-center">✕</button>
+      </div>
+
+      <button id="openEncyclopediaFromSettingsBtn" class="ios-btn w-full p-3.5 rounded-2xl bg-amber-50 border border-amber-200 flex items-center justify-between">
+        <div class="flex items-center gap-2.5">
+          <span class="text-2xl">📖</span>
+          <div class="text-left">
+            <div class="text-sm font-extrabold text-gray-900">全图鉴（物品 59 · 摆件 29）</div>
+            <div class="text-[11px] text-gray-600">查看稀有度边框、耐久度与商店专属遗物</div>
+          </div>
+        </div>
+        <span class="text-amber-600 font-extrabold text-sm">查看 ›</span>
+      </button>
+
+      <div class="grid grid-cols-2 gap-2.5">
+        <button id="settingSoundBtn" class="ios-btn theme-sub-bg p-3 rounded-2xl flex flex-col items-center gap-1">
+          <span id="settingSoundIcon" class="text-2xl">🔊</span>
+          <span id="settingSoundLabel" class="text-xs font-extrabold text-main">音效：开启</span>
+        </button>
+        <button id="settingAnimBtn" class="ios-btn theme-sub-bg p-3 rounded-2xl flex flex-col items-center gap-1">
+          <span id="settingAnimIcon" class="text-2xl">🎬</span>
+          <span id="settingAnimLabel" class="text-xs font-extrabold text-main">滚轮：动画</span>
+        </button>
+      </div>
+
+      <div class="flex flex-col gap-2">
+        <div class="text-xs font-extrabold text-main">🎨 萌系主题配色</div>
+        <div id="themeList" class="grid grid-cols-1 gap-1.5"></div>
+      </div>
+
+      <button id="returnToMenuBtn" class="hidden ios-btn w-full py-3 rounded-2xl bg-rose-50 text-rose-600 border border-rose-200 text-xs font-extrabold">
+        🏠 返回主界面
+      </button>
+    </div>
+  </div>
+
+  <!-- 全图鉴弹窗 -->
+  <div id="compendiumModal" class="hidden fixed inset-0 z-[105] modal-backdrop flex items-end sm:items-center justify-center p-3.5">
+    <div class="modal-sheet theme-card w-full max-w-[420px] max-h-[86dvh] p-4 sm:p-5 flex flex-col gap-3">
+      <div class="flex items-center justify-between gap-2">
+        <div class="flex items-center gap-2">
+          <button id="backToSettingsFromCompendiumBtn" class="ios-btn theme-sub-bg px-2.5 py-1.5 rounded-full text-xs font-extrabold text-main">‹ 返回设置</button>
+          <div>
+            <h2 class="text-base font-extrabold text-main">📖 全收集图鉴</h2>
+            <p class="text-[10px] text-sub">按稀有度分组 · 持有标绿</p>
+          </div>
+        </div>
+        <button id="closeCompendiumBtn" class="ios-btn theme-sub-bg w-8 h-8 rounded-full text-sub font-bold flex items-center justify-center">✕</button>
+      </div>
+
+      <div class="grid grid-cols-2 gap-1.5 theme-sub-bg p-1 rounded-2xl">
+        <button id="tabItemsBtn" class="ios-btn py-2 rounded-xl text-xs font-extrabold bg-white text-accent shadow-sm">🎁 盲盒物品 (59)</button>
+        <button id="tabRelicsBtn" class="ios-btn py-2 rounded-xl text-xs font-bold text-sub">✨ 幸运摆件 (29)</button>
+      </div>
+
+      <div id="compendiumBody" class="overflow-y-auto thin-scroll flex flex-col gap-3 pr-1 max-h-[64dvh]"></div>
+    </div>
+  </div>
+
+  <!-- 商店弹窗 (NEW) -->
+  <div id="shopModal" class="hidden fixed inset-0 z-[102] modal-backdrop flex items-end sm:items-center justify-center p-3">
+    <div class="modal-sheet theme-card w-full max-w-[420px] max-h-[88dvh] p-4 flex flex-col gap-3 overflow-y-auto thin-scroll">
+      <div class="flex items-center justify-between">
+        <div>
+          <div class="flex items-center gap-1.5">
+            <h2 class="text-lg font-extrabold text-main">🏪 神秘盲盒商店</h2>
+            <span id="shopLevelBadge" class="px-2 py-0.5 rounded-full bg-emerald-500 text-white text-[10px] font-extrabold">Lv.1</span>
+          </div>
+          <p class="text-[11px] text-sub">本回合结束前可随时进出 · 现有 <b id="shopCoinsText" class="text-accent">0 🪙</b></p>
+        </div>
+        <button id="closeShopBtn" class="ios-btn theme-sub-bg w-8 h-8 rounded-full text-sub font-bold flex items-center justify-center">✕</button>
+      </div>
+
+      <!-- 1. 4个随机物品（一次性 + 耐久品） -->
+      <div class="flex flex-col gap-1.5">
+        <div class="text-xs font-extrabold text-main flex items-center justify-between">
+          <span>⚡ 精选道具与耐久品 (4件)</span>
+          <span class="text-[10px] text-sub">买完立即选列放入</span>
+        </div>
+        <div id="shopItemsGrid" class="grid grid-cols-2 gap-2"></div>
+      </div>
+
+      <!-- 2. 1个商店专属遗物 -->
+      <div class="flex flex-col gap-1.5">
+        <div class="text-xs font-extrabold text-emerald-700 flex items-center justify-between">
+          <span>🍀 商店专属摆件 (1件)</span>
+          <span class="text-[10px] text-emerald-600">点击卡片可查看详情</span>
+        </div>
+        <div id="shopRelicsList" class="flex flex-col gap-2"></div>
+      </div>
+
+      <!-- 3. 删除服务 -->
+      <div class="flex flex-col gap-1.5 pt-1 border-t border-black/5">
+        <div class="text-xs font-extrabold text-main">✂️ 删除服务 (每次开店限购 1 次，购买后下次 +25🪙)</div>
+        <div id="shopDeleteCard" class="p-3 rounded-2xl bg-rose-50 border-2 border-rose-200 flex items-center justify-between gap-2">
+          <div class="flex items-center gap-2.5">
+            <span class="text-2xl">✂️</span>
+            <div>
+              <div class="text-xs font-extrabold text-gray-900">删除次数 +1</div>
+              <div class="text-[10px] text-gray-600">当前剩余 <b id="shopDeleteRemain">3</b> 次 · 精简卡组利器</div>
+            </div>
+          </div>
+          <button id="buyDeleteServiceBtn" class="ios-btn px-3.5 py-2 rounded-xl bg-rose-500 text-white text-xs font-extrabold shrink-0">
+            50 🪙
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 商店购买物品后的选列与二次确认弹窗 -->
+  <div id="shopPlaceModal" class="hidden fixed inset-0 z-[112] modal-backdrop flex items-center justify-center p-4">
+    <div class="modal-sheet theme-card w-full max-w-[395px] max-h-[85dvh] p-4 flex flex-col gap-3 overflow-y-auto thin-scroll">
+      <div class="flex items-center gap-2.5">
+        <div id="shopPlaceIcon" class="w-11 h-11 flex items-center justify-center shrink-0"></div>
+        <div class="flex-1 min-w-0">
+          <h3 id="shopPlaceTitle" class="text-base font-extrabold text-main">选择放入哪一列？</h3>
+          <p id="shopPlaceSubtitle" class="text-[11px] text-sub">先点选目标列预览该列物品，再确认购买</p>
+        </div>
+      </div>
+
+      <div id="shopPlaceCols" class="grid grid-cols-4 gap-1.5"></div>
+
+      <!-- 选中列的当前物品预览 -->
+      <div id="shopColPreviewBox" class="hidden theme-sub-bg rounded-2xl p-2.5 flex flex-col gap-1.5">
+        <div id="shopColPreviewTitle" class="text-[11px] font-extrabold text-main">第1列当前物品 (0/9)</div>
+        <div id="shopColPreviewGrid" class="grid grid-cols-3 gap-1.5 max-h-[24dvh] overflow-y-auto thin-scroll"></div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-2 pt-1">
+        <button id="cancelShopPlaceBtn" class="ios-btn theme-sub-bg py-2.5 rounded-2xl text-xs font-extrabold text-sub">取消购买</button>
+        <button id="confirmShopPlaceBtn" disabled class="ios-btn primary-cta py-2.5 rounded-2xl text-xs font-extrabold">请先选择列</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 格子 / 摆件详情弹窗 -->
+  <div id="inspectModal" class="hidden fixed inset-0 z-[108] modal-backdrop flex items-center justify-center p-5">
+    <div class="modal-sheet theme-card w-full max-w-[330px] p-5 flex flex-col items-center text-center gap-3 relative">
+      <button id="closeInspectBtn" class="ios-btn theme-sub-bg w-8 h-8 rounded-full text-sub font-bold flex items-center justify-center absolute top-3.5 right-3.5">✕</button>
+      <div id="inspectIconWrap" class="w-16 h-16 flex items-center justify-center mt-1"></div>
+      <div class="flex flex-col items-center gap-1">
+        <div class="flex items-center gap-1.5">
+          <h3 id="inspectName" class="text-lg font-extrabold text-main">名称</h3>
+          <span id="inspectRarity" class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-gray-100 text-gray-700">普通</span>
+        </div>
+        <div id="inspectMeta" class="text-xs font-extrabold text-accent">基础 +2 🪙</div>
+        <div id="inspectDurability" class="hidden px-2.5 py-0.5 rounded-full bg-orange-100 text-orange-700 text-[11px] font-extrabold">耐久: 5/5</div>
+      </div>
+      <p id="inspectDesc" class="text-xs text-sub leading-relaxed theme-sub-bg p-3 rounded-2xl w-full">
+        详细效果说明
+      </p>
+    </div>
+  </div>
+
+  <!-- 礼品三选一 + 4 列放置弹窗 -->
+  <div id="draftModal" class="hidden fixed inset-0 z-[100] modal-backdrop flex items-end sm:items-center justify-center p-3">
+    <div class="modal-sheet theme-card w-full max-w-[415px] p-4 flex flex-col gap-3">
+      <div class="flex items-center justify-between gap-2">
+        <div>
+          <div id="draftQueueTag" class="text-[10px] font-extrabold text-accent tracking-wider uppercase">策略补给站</div>
+          <h2 class="text-base font-extrabold text-main">1. 选一个礼品 → 2. 放入 4 列之一</h2>
+        </div>
+        <button id="tempSkipDraftBtn" class="ios-btn theme-sub-bg px-3 py-1.5 rounded-full text-xs font-extrabold text-main shrink-0">
+          暂时跳过
+        </button>
+      </div>
+
+      <div id="draftOptions" class="flex flex-col gap-2"></div>
+
+      <div id="columnPickerSection" class="pt-2 border-t border-black/5 transition-all duration-300 opacity-45 pointer-events-none">
+        <div class="flex items-center justify-between mb-2">
+          <span id="pickerHint" class="text-xs font-extrabold text-main">👆 请先点选上方一个礼品</span>
+          <span class="text-[10px] font-semibold text-sub">每列最多 9 个</span>
+        </div>
+        <div id="columnPickerBtns" class="grid grid-cols-4 gap-1.5"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 抽奖前提醒确认（未领礼品 / 商店未买东西） -->
+  <div id="confirmSpinModal" class="hidden fixed inset-0 z-[115] modal-backdrop flex items-center justify-center p-5">
+    <div class="modal-sheet theme-card w-full max-w-[340px] p-5 text-center flex flex-col items-center gap-3.5">
+      <div id="confirmSpinIcon" class="text-4xl">🎁</div>
+      <div>
+        <h3 id="confirmSpinTitle" class="text-lg font-extrabold text-main">提醒</h3>
+        <p id="confirmSpinBody" class="text-xs text-sub mt-1 leading-relaxed">
+          确定直接开抽吗？
+        </p>
+      </div>
+      <div class="w-full grid grid-cols-2 gap-2.5 pt-1">
+        <button id="confirmActionBtn" class="ios-btn primary-cta py-3 rounded-2xl text-sm font-extrabold">去看看</button>
+        <button id="confirmDirectSpinBtn" class="ios-btn theme-sub-bg py-3 rounded-2xl text-sm font-bold text-main">直接开抽</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 过关幸运摆件三选一 -->
+  <div id="relicModal" class="hidden fixed inset-0 z-[100] modal-backdrop flex items-end sm:items-center justify-center p-4">
+    <div class="modal-sheet theme-card w-full max-w-[400px] p-5 flex flex-col gap-3.5">
+      <div class="text-center">
+        <div class="inline-block px-3 py-1 rounded-full bg-amber-100 text-amber-700 text-xs font-extrabold mb-1">🎉 本关目标达成！</div>
+        <h2 class="text-xl font-extrabold text-main">选择一件原创幸运摆件</h2>
+        <p id="relicModalSubtitle" class="text-xs text-sub mt-0.5">永久被动生效，助你买下全世界</p>
+      </div>
+      <div id="relicOptions" class="flex flex-col gap-2.5"></div>
+    </div>
+  </div>
+
+  <!-- 统一背包管理 -->
+  <div id="poolModal" class="hidden fixed inset-0 z-[100] modal-backdrop flex items-end sm:items-center justify-center p-3">
+    <div class="modal-sheet theme-card w-full max-w-[415px] max-h-[85dvh] p-4 flex flex-col gap-3">
+      <div class="flex items-center justify-between">
+        <div>
+          <h2 class="text-lg font-extrabold text-main">🎒 我的背包 (4列奖池)</h2>
+          <p class="text-xs text-sub">
+            剩余删除 <b id="poolDeleteCount" class="text-rose-600">3</b> 次 · 删除返还 <b id="recycleRefundLabel" class="text-accent">+2 🪙</b>
+          </p>
+        </div>
+        <button id="closePoolBtn" class="ios-btn theme-sub-bg w-8 h-8 rounded-full text-sub font-bold flex items-center justify-center">✕</button>
+      </div>
+
+      <!-- 背包内展示所有已持有遗物 -->
+      <div class="flex flex-col gap-1.5 theme-sub-bg rounded-2xl p-2.5">
+        <div class="flex items-center justify-between">
+          <span class="text-[11px] font-extrabold text-main">✨ 已持有幸运摆件 (<span id="poolRelicCount">0</span>)</span>
+          <span class="text-[10px] text-sub">点击可查详情</span>
+        </div>
+        <div id="poolRelicsList" class="flex items-center gap-1.5 overflow-x-auto thin-scroll pb-0.5 min-h-[30px]">
+          <span class="text-[11px] text-sub opacity-75">暂未持有幸运摆件</span>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-4 gap-1 theme-sub-bg p-1 rounded-2xl">
+        <button data-pool-tab="0" class="pool-tab ios-btn py-1.5 rounded-xl text-[11px] font-extrabold">第1列</button>
+        <button data-pool-tab="1" class="pool-tab ios-btn py-1.5 rounded-xl text-[11px] font-extrabold">第2列</button>
+        <button data-pool-tab="2" class="pool-tab ios-btn py-1.5 rounded-xl text-[11px] font-extrabold">第3列</button>
+        <button data-pool-tab="3" class="pool-tab ios-btn py-1.5 rounded-xl text-[11px] font-extrabold">第4列</button>
+      </div>
+
+      <div id="poolGrid" class="grid grid-cols-3 gap-2 overflow-y-auto thin-scroll py-1 max-h-[46dvh]"></div>
+
+      <div id="poolHintBox" class="text-[11px] text-sub theme-sub-bg rounded-2xl p-2.5 leading-relaxed">
+        💡 <b>精简技巧</b>：点击图标可查看详细联动与耐久；删除次数可在商店「删除服务」购买或过关获赠。
+      </div>
+    </div>
+  </div>
+
+  <!-- 胜利 / 失败富叙事结算 -->
+  <div id="endModal" class="hidden fixed inset-0 z-[105] modal-backdrop flex items-center justify-center p-4">
+    <div class="modal-sheet theme-card w-full max-w-[380px] p-5 text-center flex flex-col items-center gap-3.5 relative overflow-hidden">
+      <div id="defeatStamp" class="hidden absolute top-5 right-4 px-2.5 py-1 border-2 border-rose-500 text-rose-600 rounded-lg text-[11px] font-black tracking-wider stamp-slam bg-rose-50/90">
+        房东来敲门了!
+      </div>
+
+      <div id="endIcon" class="text-6xl mt-1">🌍</div>
+
+      <div>
+        <h2 id="endTitle" class="text-2xl font-black text-main">买下全世界！</h2>
+        <p id="endNarrative" class="text-xs text-sub mt-1.5 leading-relaxed whitespace-pre-line bg-black/[0.03] p-3 rounded-2xl text-left">
+          战报生成中...
+        </p>
+      </div>
+
+      <div class="w-full grid grid-cols-3 gap-2 theme-sub-bg rounded-2xl p-3">
+        <div>
+          <div class="text-[10px] text-sub font-semibold">累计赚金</div>
+          <div id="statTotalCoins" class="text-base font-extrabold text-accent tabular-nums">0</div>
+        </div>
+        <div>
+          <div class="text-[10px] text-sub font-semibold">单轮最高</div>
+          <div id="statBestTurn" class="text-base font-extrabold text-main tabular-nums">0</div>
+        </div>
+        <div>
+          <div class="text-[10px] text-sub font-semibold">暴走次数</div>
+          <div id="statFeverCount" class="text-base font-extrabold text-orange-500 tabular-nums">0</div>
+        </div>
+      </div>
+
+      <div class="w-full flex flex-col gap-2 pt-1">
+        <button id="endlessBtn" class="hidden ios-btn primary-cta w-full py-3.5 rounded-2xl font-extrabold">
+          🌌 进入无尽模式（收购银河系）
+        </button>
+        <button id="restartBtn" class="ios-btn w-full py-3 rounded-2xl bg-gray-900 text-white font-bold text-sm">
+          再来一局
+        </button>
+        <button id="endToMenuBtn" class="ios-btn theme-sub-bg w-full py-2.5 rounded-2xl text-xs font-bold text-sub">
+          返回主界面
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 模式选择弹窗 -->
+  <div id="modeSelectModal" class="hidden fixed inset-0 z-[112] modal-backdrop flex items-center justify-center p-4">
+    <div class="modal-sheet theme-card w-full max-w-[370px] p-5 flex flex-col gap-3">
+      <div class="flex items-center justify-between">
+        <div>
+          <h3 class="text-lg font-extrabold text-main">🎮 选择游戏模式</h3>
+          <p class="text-[11px] text-sub">挑选你想挑战的玩法节奏</p>
+        </div>
+        <button id="closeModeSelectBtn" class="ios-btn theme-sub-bg w-8 h-8 rounded-full text-sub font-bold flex items-center justify-center">✕</button>
+      </div>
+
+      <button id="selectStandardModeBtn" class="ios-btn w-full p-3.5 rounded-2xl bg-amber-50 border-2 border-amber-400 text-left flex flex-col gap-1">
+        <div class="flex items-center justify-between">
+          <span class="text-sm font-extrabold text-gray-900">🏆 标准模式 · 买下全世界</span>
+          <span class="px-2 py-0.5 rounded-full bg-amber-500 text-white text-[10px] font-extrabold">推荐</span>
+        </div>
+        <p class="text-[11px] text-gray-600 leading-relaxed">
+          5 关循序渐进，从交水电费一路买下整个地球！每关过关可三选一强力幸运摆件，通关后可无缝衔接无尽模式。
+        </p>
+      </button>
+
+      <button id="selectEndlessModeBtn" class="ios-btn w-full p-3.5 rounded-2xl bg-indigo-50 border-2 border-indigo-400 text-left flex flex-col gap-1">
+        <div class="flex items-center justify-between">
+          <span class="text-sm font-extrabold text-gray-900">🌌 无尽模式 · 收购银河系</span>
+          <span class="px-2 py-0.5 rounded-full bg-indigo-500 text-white text-[10px] font-extrabold">高难爽刷</span>
+        </div>
+        <p class="text-[11px] text-gray-600 leading-relaxed">
+          开局即享最高稀有度概率池与 10 次抽盒，每轮目标指数级递增，挑战极限构筑与单轮最高金币记录！
+        </p>
+      </button>
+    </div>
+  </div>
+
+  <!-- 返回主菜单存档询问弹窗 -->
+  <div id="savePromptModal" class="hidden fixed inset-0 z-[118] modal-backdrop flex items-center justify-center p-5">
+    <div class="modal-sheet theme-card w-full max-w-[340px] p-5 text-center flex flex-col items-center gap-3.5">
+      <div class="text-4xl">💾</div>
+      <div>
+        <h3 class="text-lg font-extrabold text-main">是否保存当前进度？</h3>
+        <p class="text-xs text-sub mt-1 leading-relaxed">
+          保存后下次可在主界面点击「继续游戏」无缝接着玩。
+        </p>
+      </div>
+      <div class="w-full flex flex-col gap-2 pt-1">
+        <button id="saveAndExitBtn" class="ios-btn primary-cta w-full py-3 rounded-2xl text-sm font-extrabold">💾 保存并返回主界面</button>
+        <button id="discardAndExitBtn" class="ios-btn w-full py-2.5 rounded-2xl bg-rose-50 text-rose-600 border border-rose-200 text-xs font-extrabold">不保存，直接返回</button>
+        <button id="cancelSavePromptBtn" class="ios-btn theme-sub-bg w-full py-2 rounded-2xl text-xs font-bold text-sub">继续当前对局</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 退出告别弹窗 -->
+  <div id="exitModal" class="hidden fixed inset-0 z-[110] modal-backdrop flex items-center justify-center p-5">
+    <div class="modal-sheet theme-card w-full max-w-[330px] p-6 text-center flex flex-col items-center gap-4">
+      <div class="text-5xl">🐱👋</div>
+      <div>
+        <h3 class="text-xl font-extrabold text-main">下次再见！</h3>
+        <p class="text-xs text-sub mt-1 leading-relaxed">
+          地球和月球先帮你留着，<br/>想暴富的时候随时回来开盒！
+        </p>
+      </div>
+      <button id="backFromExitBtn" class="ios-btn primary-cta w-full py-3 rounded-2xl font-extrabold text-sm">
+        返回主界面
+      </button>
+    </div>
+  </div>
+
+  <script type="module" src="./src/main.js"></script>
+</body>
+</html>
