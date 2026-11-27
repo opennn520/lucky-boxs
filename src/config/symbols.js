@@ -3,29 +3,29 @@ export const SYMBOLS = {
   // === 吃货流 ===
   cat: {
     type: 'cat', name: '橘猫', base: 2, rarity: '普通', archetype: '吃货流',
-    desc: '相邻有小鱼干时吃一口(+7🪙且自身永久+1基础)；相邻有牛奶时喝一口(+8🪙并+12%暴走)。'
+    desc: '相邻有小鱼干时吃一口(+4🪙且自身永久+1基础)；相邻有牛奶时喝一口(+5🪙)。'
   },
   fish: {
     type: 'fish', name: '小鱼干', base: 1, rarity: '普通', archetype: '吃货流', maxDurability: 7,
-    desc: '【耐久 7】被相邻橘猫吃一口：爆 +7🪙，橘猫永久 +1 基础，自身耐久 -1。'
+    desc: '【耐久 7】被相邻橘猫吃一口：爆 +4🪙，橘猫永久 +1 基础，自身耐久 -1。'
   },
   milk: {
     type: 'milk', name: '牛奶', base: 2, rarity: '普通', archetype: '吃货流', maxDurability: 6,
-    desc: '【耐久 6】被相邻橘猫喝一口：爆 +8🪙 且暴走槽 +12%，自身耐久 -1。【负面】若相邻没有橘猫，变质倒掉 -5🪙！'
+    desc: '【耐久 6】被相邻橘猫喝一口：爆 +5🪙，自身耐久 -1。【负面】若相邻没有橘猫，变质倒掉 -1🪙 且耐久 -1！'
   },
 
   // === 矿工流 ===
   miner: {
     type: 'miner', name: '矿工', base: 2, rarity: '普通', archetype: '矿工流',
-    desc: '开采相邻原矿(+8🪙)或宝箱(+16🪙)。【负面】相邻冰美式或奶茶会打翻饮料，清理费 -5🪙！'
+    desc: '开采相邻原矿(+4🪙)或宝箱(+12🪙)。【负面】相邻冰美式或奶茶会打翻饮料，清理费 -5🪙！'
   },
   ore: {
     type: 'ore', name: '原矿', base: 1, rarity: '普通', archetype: '矿工流', maxDurability: 7,
-    desc: '【耐久 7】被相邻矿工开采：爆 +8🪙 且耐久 -1；耐久归零碎裂时额外爆 +12🪙！'
+    desc: '【耐久 7】被相邻矿工开采：爆 +4🪙 且耐久 -1；耐久归零碎裂时额外爆 +15🪙！'
   },
   chest: {
     type: 'chest', name: '宝箱', base: 2, rarity: '罕见', archetype: '矿工流', maxDurability: 3,
-    desc: '【耐久 3】被相邻矿工撬开：爆 +16🪙 且耐久 -1；最后一次开启额外爆 +25🪙！'
+    desc: '【耐久 3】被相邻矿工撬开：爆 +12🪙 且耐久 -1；最后一次开启额外爆 +22🪙！'
   },
   diamond: {
     type: 'diamond', name: '钻石', base: 10, rarity: '史诗', archetype: '矿工流', maxDurability: 5, estValue: 18,
@@ -35,35 +35,35 @@ export const SYMBOLS = {
   // === 摸鱼流 ===
   worker: {
     type: 'worker', name: '打工人', base: 2, rarity: '普通', archetype: '摸鱼流',
-    desc: '喝相邻冰美式本轮自身产出 ×2 并爆 +9🪙；紧邻笔记本额外 +6🪙。【负面】相邻橘猫上班摸鱼 -4🪙！'
+    desc: '喝相邻冰美式令本轮自身产出 ×2；紧邻笔记本额外 +2🪙。【负面】相邻橘猫上班摸鱼 -4🪙！'
   },
   coffee: {
     type: 'coffee', name: '冰美式', base: 2, rarity: '普通', archetype: '摸鱼流', maxDurability: 6,
-    desc: '【耐久 6】相邻有打工人时：爆 +9🪙 并令打工人本轮产出 ×2，自身耐久 -1。'
+    desc: '【耐久 6】相邻有打工人时：令打工人本轮产出 ×2，自身耐久 -1。'
   },
   laptop: {
     type: 'laptop', name: '笔记本', base: 2, rarity: '普通', archetype: '摸鱼流',
-    desc: '稳定办公神器！紧邻打工人时直接额外爆出 +6🪙（不耗耐久）。'
+    desc: '稳定办公神器！紧邻打工人时额外爆出 +2🪙（不耗耐久）。'
   },
 
   // === 甜品流 ===
   boba: {
     type: 'boba', name: '珍珠奶茶', base: 2, rarity: '普通', archetype: '甜品流',
-    desc: '与相邻草莓蛋糕组成下午茶套餐：双方甜蜜联动 +10🪙 且暴走 +15%！【负面】相邻有打工人时喝太甜犯困 -6🪙！'
+    desc: '与相邻草莓蛋糕组成下午茶套餐：双方甜蜜联动 +6🪙！【负面】相邻有打工人时喝太甜犯困 -6🪙！'
   },
   cake: {
     type: 'cake', name: '草莓蛋糕', base: 3, rarity: '罕见', archetype: '甜品流', maxDurability: 4,
-    desc: '【耐久 4】相邻有珍珠奶茶时：甜蜜联动共爆 +10🪙 与 +15% 暴走，自身耐久 -1。【负面】相邻无奶茶或小烤箱时奶油融化 -6🪙！'
+    desc: '【耐久 4】相邻有珍珠奶茶时：甜蜜联动共爆 +6🪙 与 +12% 暴走，自身耐久 -1。【负面】相邻无奶茶或小烤箱时奶油融化 -6🪙！'
   },
 
   // === 增殖成长流 ===
   hen: {
     type: 'hen', name: '母鸡', base: 2, rarity: '普通', archetype: '增殖流',
-    desc: '40% 概率往本列下一枚鸡蛋(列满折现 +6🪙)；相邻鸡蛋触发孵化加速并 +5🪙！'
+    desc: '40% 概率往本列下一枚鸡蛋(列满折现 +4🪙)；相邻鸡蛋触发孵化加速并 +3🪙！'
   },
   egg: {
     type: 'egg', name: '鸡蛋', base: 1, rarity: '普通', archetype: '增殖流', maxDurability: 5,
-    desc: '【耐久 5】每抽 40% 概率(或耐久归零必)孵化为橘猫或金蛋！相邻母鸡 +5🪙 并耐久 -1。'
+    desc: '【耐久 5】每抽 40% 概率(或耐久归零必)孵化为橘猫或金蛋！相邻母鸡 +3🪙 并耐久 -1。'
   },
   goldenEgg: {
     type: 'goldenEgg', name: '金蛋', base: 8, rarity: '稀有', archetype: '增殖流', maxDurability: 5, estValue: 12,
@@ -74,12 +74,12 @@ export const SYMBOLS = {
     desc: '周围每有 1 个相邻史莱姆，自身本轮产出 ×2！【负面】相邻有橘猫或柴犬时粘毛清理费 -4🪙！'
   },
   piggyBank: {
-    type: 'piggyBank', name: '存钱罐', base: 1, rarity: '罕见', archetype: '成长流', maxDurability: 5,
-    desc: '【耐久 5】每次抽中永久 +2 基础并耐久 -1；耐久归零砸开直接狂爆 3 倍累计身价！'
+    type: 'piggyBank', name: '存钱罐', base: 1, rarity: '罕见', archetype: '成长流', maxDurability: 8,
+    desc: '【耐久 8】每次抽中永久 +2 基础并耐久 -1；耐久归零砸开直接狂爆 3 倍累计身价！'
   },
   moneyTree: {
-    type: 'moneyTree', name: '摇钱树', base: 4, rarity: '稀有', archetype: '成长流', maxDurability: 6, estValue: 13,
-    desc: '【耐久 6】每次抽中永久成长 +1 基础身价并 +10% 暴走，消耗 1 耐久。【负面】每次登场需浇水施肥维护费 -4🪙！'
+    type: 'moneyTree', name: '摇钱树', base: 4, rarity: '稀有', archetype: '成长流', maxDurability: 9, estValue: 13,
+    desc: '【耐久 9】每次抽中永久成长 +1 基础身价并 +10% 暴走，消耗 1 耐久。【负面】每次登场需浇水施肥维护费 -4🪙！'
   },
   goldIngot: {
     type: 'goldIngot', name: '金元宝', base: 5, rarity: '罕见', archetype: '财富流',
@@ -119,43 +119,43 @@ export const SYMBOLS = {
   // === 新增 10 款常规 / 流派物品 ===
   dog: {
     type: 'dog', name: '柴犬', base: 2, rarity: '普通', archetype: '吃货流',
-    desc: '相邻有大骨头时啃一口(+9🪙)。【负面】相邻有橘猫时会猫狗打架，损失 -5🪙！'
+    desc: '相邻有大骨头时啃一口(+5🪙)。【负面】相邻有橘猫时会猫狗打架，损失 -5🪙！'
   },
   bone: {
-    type: 'bone', name: '大骨头', base: 1, rarity: '普通', archetype: '吃货流', maxDurability: 7, estValue: 9,
-    desc: '【耐久 7】被相邻柴犬啃一口：爆 +9🪙 且耐久 -1；耐久归零碎裂额外爆 +14🪙！'
+    type: 'bone', name: '大骨头', base: 1, rarity: '普通', archetype: '吃货流', maxDurability: 7, estValue: 7,
+    desc: '【耐久 7】被相邻柴犬啃一口：爆 +5🪙 且耐久 -1；耐久归零碎裂额外爆 +10🪙！'
   },
   barista: {
     type: 'barista', name: '咖啡师', base: 3, rarity: '罕见', archetype: '摸鱼流',
-    desc: '45% 概率在同列冲泡 1 杯冰美式(列满折现 +7🪙)；相邻冰美式本轮产出 ×2！'
+    desc: '45% 概率在同列冲泡 1 杯冰美式(列满折现 +5🪙)；相邻冰美式本轮产出 ×2！'
   },
   donut: {
-    type: 'donut', name: '甜甜圈', base: 2, rarity: '普通', archetype: '甜品流', maxDurability: 6, estValue: 8,
-    desc: '【耐久 6】相邻有珍珠奶茶或冰美式时：甜蜜搭配 +8🪙 且暴走 +10%，耐久 -1。【负面】相邻橘猫或柴犬偷吃弄乱 -6🪙！'
+    type: 'donut', name: '甜甜圈', base: 2, rarity: '普通', archetype: '甜品流', maxDurability: 6, estValue: 6,
+    desc: '【耐久 6】相邻有珍珠奶茶或冰美式时：甜蜜搭配 +5🪙，耐久 -1。【负面】相邻橘猫或柴犬偷吃弄乱 -6🪙！'
   },
   oven: {
     type: 'oven', name: '小烤箱', base: 3, rarity: '稀有', archetype: '甜品流', isMult: true,
-    desc: '相邻有草莓蛋糕或甜甜圈时：烘焙令其产出 ×2 并 +4🪙，50% 概率恢复 +1 耐久。【负面】相邻牛奶或冰美式冷热短路 -6🪙！'
+    desc: '相邻有草莓蛋糕或甜甜圈时：烘焙令其产出 ×2 并 +3🪙，50% 概率恢复 +1 耐久。【负面】相邻牛奶或冰美式冷热短路 -6🪙！'
   },
   goldPick: {
-    type: 'goldPick', name: '黄金镐', base: 3, rarity: '稀有', archetype: '矿工流', maxDurability: 4, estValue: 16,
-    desc: '【耐久 4】相邻有原矿/宝箱/钻石时：暴击开采 +15🪙 并消耗自身 1 耐久；相邻钻石额外 ×1.5！'
+    type: 'goldPick', name: '黄金镐', base: 3, rarity: '稀有', archetype: '矿工流', maxDurability: 4, estValue: 13,
+    desc: '【耐久 4】相邻有原矿/宝箱/钻石时：暴击开采 +10🪙 并消耗自身 1 耐久；相邻钻石额外 ×1.5！'
   },
   bee: {
     type: 'bee', name: '小蜜蜂', base: 2, rarity: '普通', archetype: '增殖流',
-    desc: '相邻有向日葵或幸运草时采蜜 +6🪙；35% 概率在同列种下 1 朵向日葵(列满折现 +5🪙)。'
+    desc: '相邻有向日葵或幸运草时采蜜 +3🪙；35% 概率在同列种下 1 朵向日葵(列满折现 +4🪙)。'
   },
   flower: {
-    type: 'flower', name: '向日葵', base: 2, rarity: '普通', archetype: '增殖流', maxDurability: 6, estValue: 7,
-    desc: '【耐久 6】被相邻小蜜蜂采蜜：爆 +6🪙 且耐久 -1；耐久归零结出瓜子额外爆 +10🪙！'
+    type: 'flower', name: '向日葵', base: 2, rarity: '普通', archetype: '增殖流', maxDurability: 6, estValue: 5,
+    desc: '【耐久 6】被相邻小蜜蜂采蜜：爆 +3🪙 且耐久 -1；耐久归零结出瓜子额外爆 +8🪙！'
   },
   capsule: {
     type: 'capsule', name: '扭蛋机', base: 3, rarity: '稀有', archetype: '辅助流',
-    desc: '每抽随机令相邻 1 个非一次性物品永久 +1 基础身价，并爆 +4🪙！'
+    desc: '每抽随机令相邻 1 个非一次性物品永久 +1 基础身价，并爆 +3🪙！'
   },
   phoenix: {
-    type: 'phoenix', name: '火凤凰', base: 8, rarity: '史诗', archetype: '成长流', maxDurability: 6, estValue: 22,
-    desc: '【耐久 6】每当本轮有物品耗尽/销毁时永久 +2 基础并 +10🪙（每登场消耗 1 耐久）。【负面】相邻冰美式/牛奶浇灭圣火 -8🪙！'
+    type: 'phoenix', name: '火凤凰', base: 8, rarity: '史诗', archetype: '成长流', maxDurability: 9, estValue: 20,
+    desc: '【耐久 9】每当本轮有物品耗尽/销毁时永久 +2 基础并 +6🪙（每登场消耗 1 耐久）。【负面】相邻冰美式/牛奶浇灭圣火 -8🪙！'
   },
 
   // === 商店专属神秘三件套（集齐同现合成商店特殊遗物：神秘装置） ===
@@ -214,16 +214,16 @@ export const SYMBOLS = {
     desc: '【一次性·联动】触发全场所有珍珠奶茶/草莓蛋糕/甜甜圈大派送，每个 +8🪙 且暴走 +10%（保底 +10🪙），随后销毁。'
   },
   redPacket: {
-    type: 'redPacket', name: '年终奖红包', base: 0, rarity: '稀有', archetype: '一次性', oneTime: true, pureCash: true, estValue: 30,
-    desc: '【一次性】抽中爆 +30🪙 且暴走槽 +25%，随后自动销毁。'
+    type: 'redPacket', name: '年终奖红包', base: 0, rarity: '稀有', archetype: '一次性', oneTime: true, pureCash: true, estValue: 45,
+    desc: '【一次性】抽中爆 +45🪙 且暴走槽 +20%，随后自动销毁。'
   },
   blindVoucher: {
     type: 'blindVoucher', name: '限时盲盒券', base: 0, rarity: '稀有', archetype: '一次性', oneTime: true, estValue: 24,
     desc: '【一次性】抽中爆 +12🪙，并令本关剩余抽盒次数 +1，随后自动销毁。'
   },
   goldBarBox: {
-    type: 'goldBarBox', name: '金条礼盒', base: 0, rarity: '稀有', archetype: '一次性', oneTime: true, pureCash: true, estValue: 36,
-    desc: '【一次性】抽中直接变现 +36🪙，随后自动销毁。'
+    type: 'goldBarBox', name: '金条礼盒', base: 0, rarity: '稀有', archetype: '一次性', oneTime: true, pureCash: true, estValue: 55,
+    desc: '【一次性】抽中直接变现 +55🪙，随后自动销毁。'
   },
   dynamite: {
     type: 'dynamite', name: '爆破炸药', base: 0, rarity: '稀有', archetype: '一次性', oneTime: true, estValue: 28,
@@ -238,12 +238,12 @@ export const SYMBOLS = {
     desc: '【一次性·联动】暴走槽 +60%（暴走中延长 +1 回合）。【负面】吹响需消耗 -10🪙 军号费，随后销毁！'
   },
   demolition: {
-    type: 'demolition', name: '拆迁补偿款', base: 0, rarity: '史诗', archetype: '一次性', oneTime: true, pureCash: true, estValue: 65,
-    desc: '【一次性】一夜暴富！抽中狂爆 +65🪙 且暴走槽 +40%，随后自动销毁。'
+    type: 'demolition', name: '拆迁补偿款', base: 0, rarity: '史诗', archetype: '一次性', oneTime: true, pureCash: true, estValue: 95,
+    desc: '【一次性】一夜暴富！抽中狂爆 +95🪙 且暴走槽 +30%，随后自动销毁。'
   },
   mysteryCheck: {
-    type: 'mysteryCheck', name: '神秘支票', base: 0, rarity: '史诗', archetype: '一次性', oneTime: true, pureCash: true, estValue: 65,
-    desc: '【一次性】抽中兑现 45~85🪙 随机巨款，随后自动销毁。'
+    type: 'mysteryCheck', name: '神秘支票', base: 0, rarity: '史诗', archetype: '一次性', oneTime: true, pureCash: true, estValue: 95,
+    desc: '【一次性】抽中兑现 70~120🪙 随机巨款，随后自动销毁。'
   },
   copyMirror: {
     type: 'copyMirror', name: '复制魔镜', base: 0, rarity: '史诗', archetype: '一次性', oneTime: true, estValue: 42,
