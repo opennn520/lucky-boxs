@@ -28,8 +28,8 @@ export const SYMBOLS = {
     desc: '【耐久 3】被相邻矿工撬开：爆 +12🪙 且耐久 -1；最后一次开启额外爆 +22🪙！'
   },
   diamond: {
-    type: 'diamond', name: '钻石', base: 10, rarity: '史诗', archetype: '矿工流', maxDurability: 5, estValue: 18,
-    desc: '【耐久 5】顶级晶矿，基础高达 +10🪙；每相邻 1 颗其他钻石额外 +4🪙！每次登场消耗 1 耐久。'
+    type: 'diamond', name: '钻石', base: 10, rarity: '史诗', archetype: '矿工流', maxDurability: 2, estValue: 28,
+    desc: '【耐久 2】被相邻矿工或黄金镐开采时直接狂爆 +100🪙 并消耗 1 耐久；每相邻 1 颗其他钻石额外 +4🪙！'
   },
 
   // === 摸鱼流 ===
@@ -67,7 +67,7 @@ export const SYMBOLS = {
   },
   goldenEgg: {
     type: 'goldenEgg', name: '金蛋', base: 8, rarity: '稀有', archetype: '增殖流', maxDurability: 5, estValue: 12,
-    desc: '【耐久 5】闪耀纯金蛋！单格稳定产出 +8🪙，每次登场消耗 1 耐久。'
+    desc: '【耐久 5】闪耀纯金蛋，每次登场消耗 1 耐久。'
   },
   slime: {
     type: 'slime', name: '史莱姆', base: 2, rarity: '普通', archetype: '增殖流',
@@ -82,8 +82,8 @@ export const SYMBOLS = {
     desc: '【耐久 9】每次抽中永久成长 +1 基础身价并 +10% 暴走，消耗 1 耐久。【负面】每次登场需浇水施肥维护费 -4🪙！'
   },
   goldIngot: {
-    type: 'goldIngot', name: '金元宝', base: 5, rarity: '罕见', archetype: '财富流',
-    desc: '沉甸甸的金元宝！基础 +5🪙，紧邻聚宝盆或财神像时额外 +5🪙。'
+    type: 'goldIngot', name: '金元宝', base: 4, rarity: '罕见', archetype: '财富流',
+    desc: '紧邻聚宝盆或财神像时额外 +3🪙。'
   },
 
   // === 倍率 / 辅助流 ===
@@ -112,8 +112,8 @@ export const SYMBOLS = {
     desc: '【耐久 4】暴走槽 +20% 且全场产出 ×1.5（每登场消耗 1 耐久）。【负面】鱼塘维护费 -6🪙，相邻橘猫或小鱼干受惊再 -12🪙！'
   },
   unicorn: {
-    type: 'unicorn', name: '彩虹独角兽', base: 7, rarity: '史诗', archetype: '辅助流', isMult: true, maxDurability: 5, estValue: 22,
-    desc: '【耐久 5】暴走槽 +25%，令相邻物品 ×1.5 并 +4🪙（每登场消耗 1 耐久）。【负面】每次登场需彩虹口粮 -8🪙！'
+    type: 'unicorn', name: '彩虹独角兽', base: 7, rarity: '史诗', archetype: '辅助流', isMult: true, maxDurability: 5, estValue: 20,
+    desc: '【耐久 5】暴走槽 +25%，令相邻物品 ×1.15 并 +4🪙（每登场消耗 1 耐久）。【负面】每次登场需彩虹口粮 -15🪙！'
   },
 
   // === 新增 10 款常规 / 流派物品 ===
@@ -135,7 +135,7 @@ export const SYMBOLS = {
   },
   oven: {
     type: 'oven', name: '小烤箱', base: 3, rarity: '稀有', archetype: '甜品流', isMult: true,
-    desc: '相邻有草莓蛋糕或甜甜圈时：烘焙令其产出 ×2 并 +3🪙，50% 概率恢复 +1 耐久。【负面】相邻牛奶或冰美式冷热短路 -6🪙！'
+    desc: '相邻有草莓蛋糕或甜甜圈时：烘焙令其产出 ×2 并 +2🪙，50% 概率恢复 +1 耐久。【负面】相邻牛奶或冰美式冷热短路 -6🪙！'
   },
   goldPick: {
     type: 'goldPick', name: '黄金镐', base: 3, rarity: '稀有', archetype: '矿工流', maxDurability: 4, estValue: 13,
@@ -151,11 +151,11 @@ export const SYMBOLS = {
   },
   capsule: {
     type: 'capsule', name: '扭蛋机', base: 3, rarity: '稀有', archetype: '辅助流',
-    desc: '每抽随机令相邻 1 个非一次性物品永久 +1 基础身价，并爆 +3🪙！'
+    desc: '每抽随机令相邻 1 个非一次性物品永久 +1 基础身价，并爆 +2🪙！'
   },
   phoenix: {
-    type: 'phoenix', name: '火凤凰', base: 8, rarity: '史诗', archetype: '成长流', maxDurability: 9, estValue: 20,
-    desc: '【耐久 9】每当本轮有物品耗尽/销毁时永久 +2 基础并 +6🪙（每登场消耗 1 耐久）。【负面】相邻冰美式/牛奶浇灭圣火 -8🪙！'
+    type: 'phoenix', name: '火凤凰', base: 20, rarity: '史诗', archetype: '成长流', maxDurability: 8, estValue: 28,
+    desc: '【耐久 8】本轮每有 1 个物品销毁/耗尽，永久基础 +5 且自身恢复 +1 耐久（每登场消耗 1 耐久）。【负面】相邻冰美式/牛奶浇灭圣火 -8🪙！'
   },
 
   // === 商店专属神秘三件套（集齐同现合成商店特殊遗物：神秘装置） ===
@@ -178,8 +178,8 @@ export const SYMBOLS = {
     desc: '【一次性】抽中立即爆 +12🪙，随后自动销毁不占格。'
   },
   receipt: {
-    type: 'receipt', name: '便利店小票', base: 0, rarity: '普通', archetype: '一次性', oneTime: true, pureCash: true, estValue: 11,
-    desc: '【一次性】抽中报销 +10🪙 且暴走槽 +15%，随后自动销毁。'
+    type: 'receipt', name: '便利店小票', base: 0, rarity: '普通', archetype: '一次性', oneTime: true, pureCash: true, estValue: 10,
+    desc: '【一次性】抽中仅令暴走槽 +25%（不产金币），随后自动销毁。'
   },
   catnip: {
     type: 'catnip', name: '猫薄荷', base: 0, rarity: '普通', archetype: '一次性', oneTime: true, estValue: 12,
@@ -198,8 +198,8 @@ export const SYMBOLS = {
     desc: '【一次性】抽中爆 +14🪙，并往空余列赠送 1 个随机普通物品，随后销毁。'
   },
   bobaCoupon: {
-    type: 'bobaCoupon', name: '奶茶免单券', base: 0, rarity: '罕见', archetype: '一次性', oneTime: true, pureCash: true, estValue: 17,
-    desc: '【一次性】抽中省下 +16🪙 且暴走槽 +20%，随后自动销毁。'
+    type: 'bobaCoupon', name: '奶茶免单券', base: 0, rarity: '罕见', archetype: '一次性', oneTime: true, pureCash: true, estValue: 16,
+    desc: '【一次性】抽中省下 +16🪙，随后自动销毁。'
   },
   repairKit: {
     type: 'repairKit', name: '万能胶水', base: 0, rarity: '罕见', archetype: '一次性', oneTime: true, estValue: 16,
@@ -215,7 +215,7 @@ export const SYMBOLS = {
   },
   redPacket: {
     type: 'redPacket', name: '年终奖红包', base: 0, rarity: '稀有', archetype: '一次性', oneTime: true, pureCash: true, estValue: 45,
-    desc: '【一次性】抽中爆 +45🪙 且暴走槽 +20%，随后自动销毁。'
+    desc: '【一次性】抽中爆 +45🪙，随后自动销毁。'
   },
   blindVoucher: {
     type: 'blindVoucher', name: '限时盲盒券', base: 0, rarity: '稀有', archetype: '一次性', oneTime: true, estValue: 24,
@@ -239,15 +239,15 @@ export const SYMBOLS = {
   },
   demolition: {
     type: 'demolition', name: '拆迁补偿款', base: 0, rarity: '史诗', archetype: '一次性', oneTime: true, pureCash: true, estValue: 95,
-    desc: '【一次性】一夜暴富！抽中狂爆 +95🪙 且暴走槽 +30%，随后自动销毁。'
+    desc: '【一次性】一夜暴富！抽中狂爆 +95🪙，随后自动销毁。'
   },
   mysteryCheck: {
-    type: 'mysteryCheck', name: '神秘支票', base: 0, rarity: '史诗', archetype: '一次性', oneTime: true, pureCash: true, estValue: 95,
-    desc: '【一次性】抽中兑现 70~120🪙 随机巨款，随后自动销毁。'
+    type: 'mysteryCheck', name: '神秘支票', base: 0, rarity: '史诗', archetype: '一次性', oneTime: true, pureCash: true, estValue: 120,
+    desc: '【一次性】抽中兑现 50~300🪙 随机巨款，随后自动销毁。'
   },
   copyMirror: {
-    type: 'copyMirror', name: '复制魔镜', base: 0, rarity: '史诗', archetype: '一次性', oneTime: true, estValue: 42,
-    desc: '【一次性·联动】复制相邻基础身价最高的非一次性物品入列（列满折现 +35🪙），并爆 +20🪙，随后销毁。'
+    type: 'copyMirror', name: '复制魔镜', base: 0, rarity: '史诗', archetype: '一次性', oneTime: true, estValue: 55,
+    desc: '【一次性·联动】复制相邻基础身价最高的非一次性物品入列（列满折现 +80🪙），并爆 +45🪙（无目标保底 +60🪙），随后销毁。'
   },
   jackpotTicket: {
     type: 'jackpotTicket', name: '超级锦鲤签', base: 0, rarity: '史诗', archetype: '一次性', oneTime: true, estValue: 48,
