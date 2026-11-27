@@ -126,6 +126,14 @@ export async function executeDraw({ boardEngine, fxEngine, ui }) {
     PlatformAdapter.vibrate(20);
     ui.spawnFloatText(srcIdx, `-${rawLoss}🪙`, true, true);
     ui.setTicker(label);
+    if (hasRelic('eraser')) {
+      const erAmt = 2;
+      turnTotal += erAmt;
+      state.coins += erAmt;
+      state.totalEarned += erAmt;
+      recordRelicGain('eraser', erAmt);
+      turnLog.gains.push({ label: '摆件「橡皮擦」(负面补贴)', amount: erAmt });
+    }
     ui.updateHUD();
     await sleep(state.fastMode ? 105 : 165);
   };
@@ -220,10 +228,26 @@ export async function executeDraw({ boardEngine, fxEngine, ui }) {
       const pos = boardEngine.getSlotScreenCenter(i);
       fxEngine.spawnBurst(pos.x, pos.y, '#F59E0B', 14);
 
+      // 小铜铃：每触发 1 个一次性物品获得 +4🪙
+      if (hasRelic('tinyBell')) {
+        const bellAmt = Math.round(4 * feverMult * coreMult);
+        turnTotal += bellAmt;
+        state.coins += bellAmt;
+        state.totalEarned += bellAmt;
+        recordRelicGain('tinyBell', bellAmt);
+        turnLog.gains.push({ label: '摆件「小铜铃」(一次性触发)', amount: bellAmt });
+      }
+
       if (item.type === 'pocketMoney') {
-        await addSynergyHit(i, i, 12 + magnetBonus, '零花钱袋打开 +12🪙 后销毁', '#F59E0B', 8);
+        await addSynergyHit(i, i, 12 + magnetBonus, '零花钱袋打开 +12🪙 后销毁', '#F59E0B', 0);
       } else if (item.type === 'receipt') {
-        await addSynergyHit(i, i, 10 + magnetBonus, '便利店小票报销 +10🪙，暴走 +15%', '#64748B', 15);
+        comboCount++;
+        addFeverCharge(25);
+        sound.playSynergy(comboCount - 1);
+        ui.spawnFloatText(i, '+25%暴走!', false);
+        ui.setTicker('便利店小票生效！暴走槽 +25% 后销毁');
+        ui.updateHUD();
+        await sleep(state.fastMode ? 100 : 150);
       } else if (item.type === 'catnip') {
         let hit = 0;
         for (let j = 0; j < BOARD_SIZE; j++) {
@@ -250,14 +274,17 @@ export async function executeDraw({ boardEngine, fxEngine, ui }) {
         else if (magnetBonus > 0) await addSynergyHit(i, i, magnetBonus, `金币磁铁额外吸附 +${magnetBonus}🪙`, '#EF4444', 4);
       } else if (item.type === 'scratchCard') {
         const prize = 10 + Math.floor(Math.random() * 15);
-        await addSynergyHit(i, i, prize + magnetBonus, `刮刮乐刮出 +${prize}🪙 后自动销毁`, '#F59E0B', 10);
+        await addSynergyHit(i, i, prize + magnetBonus, `刮刮乐刮出 +${prize}🪙 后自动销毁`, '#F59E0B', 0);
       } else if (item.type === 'mysteryBox') {
         const randCommon = COMMON_KEYS[Math.floor(Math.random() * COMMON_KEYS.length)];
         const sc = trySpawnIntoColumn(colIdx, randCommon);
-        const msg = sc !== -1 ? `神秘快递 +14🪙，并在${COL_NAMES[sc]}送出「${SYMBOLS[randCommon].name}」` : '神秘快递 +14🪙（背包已满）';
-        await addSynergyHit(i, i, 14 + magnetBonus, msg, '#3B82F6', 10);
+        const msg = sc !== -1
+          ? `📦 神秘快递拆开 +14🪙，并在${COL_NAMES[sc]}送出「${SYMBOLS[randCommon].name}」！`
+          : '📦 神秘快递拆开 +14🪙（背包已满，无法赠送物品）';
+        ui.showToast(msg, 2600);
+        await addSynergyHit(i, i, 14 + magnetBonus, msg, '#3B82F6', 0);
       } else if (item.type === 'bobaCoupon') {
-        await addSynergyHit(i, i, 16 + magnetBonus, '奶茶免单券省下 +16🪙，暴走 +20%！', '#EC4899', 20);
+        await addSynergyHit(i, i, 16 + magnetBonus, '奶茶免单券省下 +16🪙！', '#EC4899', 0);
       } else if (item.type === 'repairKit') {
         let repaired = 0;
         for (let j = 0; j < BOARD_SIZE; j++) {
@@ -295,12 +322,12 @@ export async function executeDraw({ boardEngine, fxEngine, ui }) {
         if (hit === 0) await addSynergyHit(i, i, 10 + magnetBonus, '甜品试吃券折现 +10🪙', '#EC4899', 12);
         else if (magnetBonus > 0) await addSynergyHit(i, i, magnetBonus, `金币磁铁额外吸附 +${magnetBonus}🪙`, '#EF4444', 4);
       } else if (item.type === 'redPacket') {
-        await addSynergyHit(i, i, 45 + magnetBonus, '年终奖红包拆开 +45🪙，暴走 +20%！', '#EF4444', 20);
+        await addSynergyHit(i, i, 45 + magnetBonus, '年终奖红包拆开 +45🪙！', '#EF4444', 0);
       } else if (item.type === 'blindVoucher') {
         state.drawsLeft++;
-        await addSynergyHit(i, i, 12 + magnetBonus, '限时盲盒券生效 +12🪙，本关抽盒次数 +1！', '#8B5CF6', 12);
+        await addSynergyHit(i, i, 12 + magnetBonus, '限时盲盒券生效 +12🪙，本关抽盒次数 +1！', '#8B5CF6', 0);
       } else if (item.type === 'goldBarBox') {
-        await addSynergyHit(i, i, 55 + magnetBonus, '金条礼盒变现 +55🪙！', '#D97706', 15);
+        await addSynergyHit(i, i, 55 + magnetBonus, '金条礼盒变现 +55🪙！', '#D97706', 0);
       } else if (item.type === 'dynamite') {
         let hit = 0;
         for (const nIdx of neighbors) {
@@ -346,10 +373,10 @@ export async function executeDraw({ boardEngine, fxEngine, ui }) {
         }
         ui.updateHUD();
       } else if (item.type === 'demolition') {
-        await addSynergyHit(i, i, 95 + magnetBonus, '拆迁补偿款到账！狂爆 +95🪙，暴走 +30%！', '#D97706', 30);
+        await addSynergyHit(i, i, 95 + magnetBonus, '拆迁补偿款到账！狂爆 +95🪙！', '#D97706', 0);
       } else if (item.type === 'mysteryCheck') {
-        const prize = 70 + Math.floor(Math.random() * 51);
-        await addSynergyHit(i, i, prize + magnetBonus, `神秘支票兑现巨款 +${prize}🪙！`, '#10B981', 25);
+        const prize = 50 + Math.floor(Math.random() * 251);
+        await addSynergyHit(i, i, prize + magnetBonus, `神秘支票兑现巨款 +${prize}🪙！`, '#10B981', 0);
       } else if (item.type === 'copyMirror') {
         let bestTarget = null;
         let bestScore = -1;
@@ -364,17 +391,17 @@ export async function executeDraw({ boardEngine, fxEngine, ui }) {
         }
         if (bestTarget) {
           const sc = trySpawnIntoColumn(colIdx, bestTarget.type);
-          const extra = sc !== -1 ? 20 : 55;
+          const extra = sc !== -1 ? 45 : 80;
           const msg = sc !== -1
-            ? `复制魔镜复制了「${SYMBOLS[bestTarget.type].name}」放入${COL_NAMES[sc]}，并爆 +20🪙！`
-            : `复制魔镜触发（背包已满折现）狂爆 +55🪙！`;
-          await addSynergyHit(i, i, extra + magnetBonus, msg, '#A855F7', 20);
+            ? `复制魔镜复制了「${SYMBOLS[bestTarget.type].name}」放入${COL_NAMES[sc]}，并爆 +45🪙！`
+            : `复制魔镜触发（背包已满折现）狂爆 +80🪙！`;
+          await addSynergyHit(i, i, extra + magnetBonus, msg, '#A855F7', 0);
         } else {
-          await addSynergyHit(i, i, 35 + magnetBonus, '复制魔镜周围无目标，折现 +35🪙！', '#A855F7', 18);
+          await addSynergyHit(i, i, 60 + magnetBonus, '复制魔镜周围无目标，折现 +60🪙！', '#A855F7', 0);
         }
       } else if (item.type === 'jackpotTicket') {
         jackpotMult *= 1.5;
-        await addSynergyHit(i, i, 30 + magnetBonus, '超级锦鲤签生效！+30🪙 且本轮全场产出额外 ×1.5！', '#F59E0B', 25);
+        await addSynergyHit(i, i, 30 + magnetBonus, '超级锦鲤签生效！+30🪙 且本轮全场产出额外 ×1.5！', '#F59E0B', 0);
       }
       continue;
     }
@@ -416,6 +443,10 @@ export async function executeDraw({ boardEngine, fxEngine, ui }) {
           await consumeDurability(nIdx, async () => {
             await addSynergyHit(nIdx, i, 22, '宝箱彻底清空！额外狂爆 +22🪙 终极宝藏！', '#D97706', 0);
           });
+        } else if (target.type === 'diamond') {
+          if (minerRelic > 0) recordRelicGain('minerLamp', Math.round(minerRelic * feverMult * coreMult));
+          await addSynergyHit(i, nIdx, 100 + minerRelic, '💎 矿工开采顶级钻石！惊天狂爆 +100🪙！', '#38BDF8', 0);
+          await consumeDurability(nIdx);
         } else if (target.type === 'coffee' || target.type === 'boba') {
           await addNegativePenalty(i, nIdx, 5, '矿坑打翻饮料！清理费 -5🪙');
         }
@@ -578,7 +609,7 @@ export async function executeDraw({ boardEngine, fxEngine, ui }) {
 
     if (item.type === 'unicorn') {
       addFeverCharge(25);
-      await addNegativePenalty(i, i, 8, '彩虹独角兽口粮消耗 -8🪙');
+      await addNegativePenalty(i, i, 15, '彩虹独角兽口粮消耗 -15🪙');
     }
 
     // === 新增 10 款常规物品联动（含强势物品负面联动） ===
@@ -717,20 +748,18 @@ export async function executeDraw({ boardEngine, fxEngine, ui }) {
     }
   }
 
-  // 火凤凰浴火重生结算（响应本轮任意物品耐久归零或一次性销毁）
+  // 火凤凰浴火重生结算（响应本轮任意物品耐久归零或一次性销毁：每销毁1个永久+5基础且耐久+1）
   if (destroyedCount > 0) {
     for (let i = 0; i < BOARD_SIZE; i++) {
       const item = state.board[i];
       if (!item || consumedIndices.has(i) || item.type !== 'phoenix') continue;
-      item.bonusBase += destroyedCount * 2;
-      await addSynergyHit(
-        i,
-        i,
-        destroyedCount * 10,
-        `火凤凰浴火重生 ×${destroyedCount}！永久基础 +${destroyedCount * 2} 且狂爆 +${destroyedCount * 10}🪙！`,
-        '#F97316',
-        destroyedCount * 10
-      );
+      item.bonusBase += destroyedCount * 5;
+      if (typeof item.durability === 'number') {
+        item.durability = Math.min(item.maxDurability, item.durability + destroyedCount);
+      }
+      boardEngine.pulseCell(i, '#F97316');
+      ui.spawnFloatText(i, `🔥 +${destroyedCount * 5}基础 +${destroyedCount}耐久`, true);
+      ui.setTicker(`火凤凰浴火重生 ×${destroyedCount}！永久基础 +${destroyedCount * 5} 且耐久 +${destroyedCount}！`);
     }
   }
 
@@ -786,7 +815,7 @@ export async function executeDraw({ boardEngine, fxEngine, ui }) {
       if (nItem.type === 'clover') mult *= 1.5;
       if (nItem.type === 'luckyCat') mult *= 2;
       if (nItem.type === 'unicorn') {
-        mult *= 1.5;
+        mult *= 1.15;
         val += 4;
       }
       if (nItem.type === 'magicWand' && typeof item.durability === 'number') mult *= 1.5;
@@ -828,19 +857,15 @@ export async function executeDraw({ boardEngine, fxEngine, ui }) {
 
   addRelicFlat('coinBox', '零钱收纳盒', 3);
   addRelicFlat('piggyCharm', '招财猪挂件', 4);
-  addRelicFlat('woodenCoin', '木头硬币', 1);
+  if (hasRelic('woodenCoin')) {
+    const commonCnt = state.board.filter(
+      (it, idx) => it && !consumedIndices.has(idx) && SYMBOLS[it.type].rarity === '普通'
+    ).length;
+    addRelicFlat('woodenCoin', '木头硬币', commonCnt, false);
+  }
   addRelicFlat('stampedCoin', '印花金币', 2);
   addRelicFlat('coinPouch', '幸运硬币袋', emptyCount, false);
   if (comboCount === 0) addRelicFlat('starCharm', '许愿星挂坠', 8);
-  if (comboCount > 0) addRelicFlat('tinyBell', '小铜铃', 2);
-  if (negativeCount > 0) addRelicFlat('eraser', '橡皮擦', 2, false);
-  if (hasRelic('luckyPenny')) {
-    const commonCnt = Math.min(
-      4,
-      state.board.filter((it, idx) => it && !consumedIndices.has(idx) && SYMBOLS[it.type].rarity === '普通').length
-    );
-    addRelicFlat('luckyPenny', '幸运便士', commonCnt, false);
-  }
   if (hasRelic('goldenClover')) {
     const multItemsCount = state.board.filter(
       (it, idx) => it && !consumedIndices.has(idx) && SYMBOLS[it.type].isMult
@@ -848,8 +873,9 @@ export async function executeDraw({ boardEngine, fxEngine, ui }) {
     addRelicFlat('goldenClover', '四叶金草', multItemsCount * 3);
   }
   if (hasRelic('luckyDice')) {
-    const allDiverse = state.columns.every(col => new Set(col.map(it => it.type)).size >= 2);
-    if (allDiverse) addRelicFlat('luckyDice', '幸运骰子', 6);
+    const uniqueTypes = new Set();
+    state.columns.forEach(col => col.forEach(it => uniqueTypes.add(it.type)));
+    if (uniqueTypes.size >= 6) addRelicFlat('luckyDice', '幸运骰子', 6);
   }
 
   if (baseSum > 0) {
@@ -880,6 +906,20 @@ export async function executeDraw({ boardEngine, fxEngine, ui }) {
     ui.updateHUD();
   }
 
+  // 史诗遗物「金珍珠」：基础 ×1.05，每触发 1 次联动/爆发额外 +0.05
+  if (hasRelic('goldPearl') && turnTotal > 0) {
+    const gpMult = 1.05 + comboCount * 0.05;
+    const gpBonus = Math.round(turnTotal * (gpMult - 1));
+    if (gpBonus > 0) {
+      turnTotal += gpBonus;
+      state.coins += gpBonus;
+      state.totalEarned += gpBonus;
+      recordRelicGain('goldPearl', gpBonus);
+      turnLog.gains.push({ label: `史诗「金珍珠」(×${gpMult.toFixed(2)})`, amount: gpBonus });
+      ui.updateHUD();
+    }
+  }
+
   // 商店特殊遗物「神秘装置」：每轮结算最终收益独立乘算 ×1.25
   if (hasRelic('mysteryDevice') && turnTotal > 0) {
     const deviceBonus = Math.round(turnTotal * 0.25);
@@ -890,6 +930,22 @@ export async function executeDraw({ boardEngine, fxEngine, ui }) {
     turnLog.gains.push({ label: '商店特殊「神秘装置」(独立×1.25)', amount: deviceBonus });
     ui.showToast(`🌀 神秘装置独立增幅 ×1.25！额外 +${deviceBonus}🪙`, 2000);
     ui.updateHUD();
+  }
+
+  // 神话遗物「银河珍珠」：基础倍率 0.5 + 每拥有 1 件遗物 +0.5，回合结束独立乘算
+  if (hasRelic('galaxyPearl') && turnTotal > 0) {
+    const galaxyMult = 0.5 + state.relics.length * 0.5;
+    const targetVal = Math.round(turnTotal * galaxyMult);
+    const diff = targetVal - turnTotal;
+    if (diff > 0) {
+      turnTotal += diff;
+      state.coins += diff;
+      state.totalEarned += diff;
+      recordRelicGain('galaxyPearl', diff);
+      turnLog.gains.push({ label: `神话「银河珍珠」(独立×${galaxyMult.toFixed(1)})`, amount: diff });
+      ui.showToast(`🌌 银河珍珠独立乘算 ×${galaxyMult.toFixed(1)}！狂增 +${diff}🪙`, 2400);
+      ui.updateHUD();
+    }
   }
 
   // 高收益带耐久核心物品每登场消耗 1 耐久（防超模）
