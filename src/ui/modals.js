@@ -22,7 +22,8 @@ import {
   areAllColumnsFull,
   getRecycleValue,
   getShopDiscountedPrice,
-  clearSavedGame
+  clearSavedGame,
+  recordRelicGain
 } from '../engine/gameState.js';
 import { generateNewShopVisit } from '../engine/shopEngine.js';
 import { getCurrentTheme, applyTheme } from './themeManager.js';
@@ -48,6 +49,8 @@ const ALL_MODAL_IDS = [
   'endModal',
   'modeSelectModal',
   'savePromptModal',
+  'turnBreakdownModal',
+  'mysteryDeviceModal',
   'exitModal'
 ];
 
@@ -353,6 +356,7 @@ export function openItemInspectModal(item) {
     durEl.classList.add('hidden');
   }
 
+  document.getElementById('inspectRelicStats').classList.add('hidden');
   document.getElementById('inspectDesc').innerHTML = formatRichDesc(def.desc);
   document.getElementById('inspectModal').classList.remove('hidden');
 }
@@ -371,8 +375,65 @@ export function openRelicInspectModal(relic) {
       ? '🍀 商店专属永久摆件'
       : '✨ 永久生效原创摆件';
   document.getElementById('inspectDurability').classList.add('hidden');
+
+  const statsBox = document.getElementById('inspectRelicStats');
+  if (state.inGame && hasRelic(relic.id)) {
+    const stat = state.relicStats[relic.id] || { turn: 0, total: 0 };
+    document.getElementById('inspectRelicTurn').textContent = `+${stat.turn} 🪙`;
+    document.getElementById('inspectRelicTotal').textContent = `+${stat.total} 🪙`;
+    statsBox.classList.remove('hidden');
+  } else {
+    statsBox.classList.add('hidden');
+  }
+
   document.getElementById('inspectDesc').innerHTML = formatRichDesc(relic.desc);
   document.getElementById('inspectModal').classList.remove('hidden');
+}
+
+export function openTurnBreakdownModal() {
+  const log = state.lastTurnLog;
+  if (!log) return;
+  document.getElementById('turnBreakdownSummary').textContent = `本轮净收益：${log.total >= 0 ? '+' : ''}${log.total} 🪙`;
+  const body = document.getElementById('turnBreakdownBody');
+  body.innerHTML = '';
+
+  const gainsBlock = document.createElement('div');
+  gainsBlock.className = 'flex flex-col gap-1';
+  gainsBlock.innerHTML = `<div class="text-xs font-extrabold text-emerald-700">🟢 本轮收益项 (${log.gains.length})</div>`;
+  if (log.gains.length === 0) {
+    gainsBlock.innerHTML += `<div class="text-[11px] text-sub theme-sub-bg rounded-xl p-2">本轮暂无正向收益</div>`;
+  } else {
+    log.gains.forEach(g => {
+      gainsBlock.innerHTML += `
+        <div class="flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-xl bg-emerald-50 border border-emerald-200 text-xs">
+          <span class="text-gray-800 font-semibold truncate">${g.label}</span>
+          <span class="text-emerald-600 font-extrabold shrink-0">+${g.amount} 🪙</span>
+        </div>`;
+    });
+  }
+  body.appendChild(gainsBlock);
+
+  if (log.losses.length > 0) {
+    const lossesBlock = document.createElement('div');
+    lossesBlock.className = 'flex flex-col gap-1 mt-1';
+    lossesBlock.innerHTML = `<div class="text-xs font-extrabold text-rose-600">🔴 本轮扣费项 (${log.losses.length})</div>`;
+    log.losses.forEach(l => {
+      lossesBlock.innerHTML += `
+        <div class="flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-xl bg-rose-50 border border-rose-200 text-xs">
+          <span class="text-gray-800 font-semibold truncate">${l.label}</span>
+          <span class="text-rose-600 font-extrabold shrink-0">-${l.amount} 🪙</span>
+        </div>`;
+    });
+    body.appendChild(lossesBlock);
+  }
+
+  document.getElementById('turnBreakdownModal').classList.remove('hidden');
+}
+
+export function openMysteryDeviceModal(device) {
+  document.getElementById('mysteryDeviceIcon').innerHTML = IconRenderer.getIconSVG(device.id, 72);
+  document.getElementById('mysteryDeviceDesc').innerHTML = formatRichDesc(device.desc);
+  document.getElementById('mysteryDeviceModal').classList.remove('hidden');
 }
 
 export function openPendingDraftModal() {
@@ -507,13 +568,21 @@ export function handleLevelClear() {
     if (interest > 0) {
       state.coins += interest;
       state.totalEarned += interest;
+      recordRelicGain('goldScale', interest);
       extraNotes.push(`黄金天平利息 +${interest}🪙`);
     }
   }
   if (hasRelic('passbook')) {
     state.coins += 12;
     state.totalEarned += 12;
+    recordRelicGain('passbook', 12);
     extraNotes.push(`零钱存折 +12🪙`);
+  }
+  if (hasRelic('oldWallet')) {
+    state.coins += 5;
+    state.totalEarned += 5;
+    recordRelicGain('oldWallet', 5);
+    extraNotes.push(`旧钱包 +5🪙`);
   }
 
   if (!state.endless && state.levelIndex < LEVELS.length - 1) {
