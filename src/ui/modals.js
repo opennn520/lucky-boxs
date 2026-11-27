@@ -369,7 +369,9 @@ export function openRelicInspectModal(relic) {
   rEl.textContent = relic.rarity;
   rEl.className = `px-2 py-0.5 rounded-full text-[10px] font-extrabold ${st.badge}`;
   document.getElementById('inspectMeta').textContent =
-    relic.rarity === '商店特殊'
+    relic.rarity === '神话'
+      ? '🌌 神话级终极遗物'
+      : relic.rarity === '商店特殊'
       ? '🌀 商店特殊融合遗物'
       : relic.rarity === '商店专属'
       ? '🍀 商店专属永久摆件'
@@ -579,10 +581,14 @@ export function handleLevelClear() {
     extraNotes.push(`零钱存折 +12🪙`);
   }
   if (hasRelic('oldWallet')) {
-    state.coins += 5;
-    state.totalEarned += 5;
-    recordRelicGain('oldWallet', 5);
-    extraNotes.push(`旧钱包 +5🪙`);
+    const curLvlNum = state.endless ? state.endlessRound + 5 : state.levelIndex + 1;
+    const walletBonus = getTotalPoolCount() * curLvlNum;
+    if (walletBonus > 0) {
+      state.coins += walletBonus;
+      state.totalEarned += walletBonus;
+      recordRelicGain('oldWallet', walletBonus);
+      extraNotes.push(`旧钱包 +${walletBonus}🪙`);
+    }
   }
 
   if (!state.endless && state.levelIndex < LEVELS.length - 1) {
@@ -604,9 +610,25 @@ export function openRelicModal(extraMsg = '') {
   const container = document.getElementById('relicOptions');
   container.innerHTML = '';
   document.getElementById('relicModalSubtitle').textContent = extraMsg || '永久被动生效，助你买下全世界';
-  const available = REGULAR_RELICS.filter(r => !hasRelic(r.id))
-    .sort(() => Math.random() - 0.5)
-    .slice(0, 3);
+
+  // 按稀有度加权抽取过关摆件（神话品质掉落概率最低）
+  const relicWeights = { '普通': 45, '罕见': 30, '稀有': 16, '史诗': 7, '神话': 1.5 };
+  const pool = REGULAR_RELICS.filter(r => !hasRelic(r.id));
+  const available = [];
+  while (available.length < 3 && pool.length > 0) {
+    const totalW = pool.reduce((sum, r) => sum + (relicWeights[r.rarity] || 10), 0);
+    let roll = Math.random() * totalW;
+    let pickIdx = 0;
+    for (let j = 0; j < pool.length; j++) {
+      roll -= relicWeights[pool[j].rarity] || 10;
+      if (roll <= 0) {
+        pickIdx = j;
+        break;
+      }
+    }
+    available.push(pool[pickIdx]);
+    pool.splice(pickIdx, 1);
+  }
 
   available.forEach(relic => {
     const st = RARITY_STYLES[relic.rarity];
