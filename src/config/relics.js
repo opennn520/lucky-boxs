@@ -1,15 +1,15 @@
 // 20 款常规过关摆件 + 8 款商店专属摆件 = 28 款
 export const REGULAR_RELICS = [
   { id: 'coinBox', name: '零钱收纳盒', rarity: '普通', desc: '每次开抽基础保底额外 +3🪙。' },
-  { id: 'luckyDice', name: '幸运骰子', rarity: '普通', desc: '每列至少有 2 个不同物品时，本抽额外 +6🪙。' },
+  { id: 'luckyDice', name: '幸运骰子', rarity: '普通', desc: '背包中拥有 ≥6 种不同物品时，每次开抽额外 +6🪙。' },
   { id: 'powerBank', name: '小型充电宝', rarity: '普通', desc: '狂热暴走槽的所有充能速度 +20%。' },
   { id: 'piggyCharm', name: '招财猪挂件', rarity: '普通', desc: '每次开抽稳定额外 +4🪙，细水长流。' },
-  { id: 'woodenCoin', name: '木头硬币', rarity: '普通', desc: '每次开抽额外 +1🪙（虽然很少，但聊胜于无）。' },
-  { id: 'oldWallet', name: '旧钱包', rarity: '普通', desc: '每次过关额外捡到 +5🪙 零钱。' },
-  { id: 'tinyBell', name: '小铜铃', rarity: '普通', desc: '每次开抽若触发任意联动，额外 +2🪙。' },
+  { id: 'woodenCoin', name: '木头硬币', rarity: '普通', desc: '当场上有普通物品时，每个普通物品额外 +1🪙。' },
+  { id: 'oldWallet', name: '旧钱包', rarity: '普通', desc: '过关时获得【当前拥有物品总数 × 当前关卡数】🪙。' },
+  { id: 'tinyBell', name: '小铜铃', rarity: '普通', desc: '每触发 1 个一次性物品时，额外获得 +4🪙。' },
   { id: 'paperClip', name: '回形针', rarity: '普通', desc: '每次在背包删除物品时，额外返还 +1🪙。' },
-  { id: 'luckyPenny', name: '幸运便士', rarity: '普通', desc: '盘面上每有 1 个普通品质物品，本轮额外 +1🪙（上限 +4🪙）。' },
-  { id: 'eraser', name: '橡皮擦', rarity: '普通', desc: '每次开抽若触发负面扣费，安慰补贴 +2🪙。' },
+  { id: 'luckyPenny', name: '幸运便士', rarity: '普通', desc: '获取稀有与史诗物品的概率权重提升 +20%！' },
+  { id: 'eraser', name: '橡皮擦', rarity: '普通', desc: '每触发 1 次负面扣费，立即补贴 +2🪙。' },
   { id: 'windChime', name: '招财风铃', rarity: '罕见', desc: '每次触发羁绊联动或一次性爆发时，额外 +2🪙。' },
   { id: 'vipCard', name: '黑金会员卡', rarity: '罕见', desc: '背包删除物品返还从 2🪙 提升至 6🪙！' },
   { id: 'careOil', name: '耐久保养油', rarity: '罕见', desc: '此后新获得的带耐久物品，初始耐久上限与当前耐久均 +2！' },
@@ -25,7 +25,9 @@ export const REGULAR_RELICS = [
   { id: 'goldScale', name: '黄金天平', rarity: '史诗', desc: '每次过关额外获得当前剩余金币 10% 的利息（上限 +80🪙）。' },
   { id: 'coreEngine', name: '终极盲盒机芯', rarity: '史诗', desc: '每次开抽有 25% 概率触发超频，全盘产出 ×1.5！' },
   { id: 'timeHourglass', name: '幸运沙漏', rarity: '史诗', desc: '此后每关开局额外获得 +1 次抽盒机会！' },
-  { id: 'rainbowPrism', name: '彩虹棱镜', rarity: '史诗', desc: '单次开抽触发 ≥4 次联动时，本轮最终总收益额外 ×1.25！' }
+  { id: 'rainbowPrism', name: '彩虹棱镜', rarity: '史诗', desc: '单次开抽触发 ≥4 次联动时，本轮最终总收益额外 ×1.25！' },
+  { id: 'goldPearl', name: '金珍珠', rarity: '史诗', desc: '结算时基础倍率 ×1.05，本轮每触发 1 次物品联动/爆发，倍率额外 +0.05！' },
+  { id: 'galaxyPearl', name: '银河珍珠', rarity: '神话', desc: '基础倍率 ×0.5，你每拥有 1 件遗物，回合结束时独立乘算倍率 +0.5！' }
 ];
 
 export const SHOP_RELICS = [
