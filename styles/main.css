@@ -219,6 +219,19 @@ body.fever-active #feverScreenBorder {
   100% { background-position: 0% 50%; }
 }
 
+/* 神话稀有度：红色波动流光 */
+.rarity-wave-red-badge {
+  background: linear-gradient(90deg, #BE123C, #FB7185, #E11D48, #FDA4AF, #BE123C);
+  background-size: 260% 100%;
+  animation: waveGreenFlow 2.2s linear infinite;
+}
+.rarity-wave-red-card {
+  background: linear-gradient(135deg, #FFF1F2, #FECDD3, #FFE4E6, #FDA4AF);
+  background-size: 260% 260%;
+  animation: waveGreenFlow 3s ease-in-out infinite;
+  box-shadow: 0 0 16px rgba(225, 29, 72, 0.35);
+}
+
 #gameScreen {
   width: 100%;
   max-width: 440px;
