@@ -405,5 +405,25 @@ export const ICON_PATHS = {
     <circle cx="32" cy="32" r="22" fill="#6EE7B7" stroke="#047857" stroke-width="2.8"/>
     <rect x="20" y="20" width="24" height="24" rx="4" fill="#ECFDF5" stroke="#059669" stroke-width="2.2"/>
     <polygon points="32,18 44,40 20,40" fill="#34D399" stroke="#047857" stroke-width="2" stroke-linejoin="round"/>
-    <circle cx="32" cy="33" r="4.5" fill="#FEF08A" stroke="#047857" stroke-width="1.8"/>`
+    <circle cx="32" cy="33" r="4.5" fill="#FEF08A" stroke="#047857" stroke-width="1.8"/>`,
+
+  // === 新增 6 款普通凑数摆件图标 ===
+  woodenCoin: `
+    <circle cx="32" cy="32" r="19" fill="#D4A373" stroke="#78350F" stroke-width="2.6"/>
+    <rect x="26" y="26" width="12" height="12" rx="2" fill="#FFFBEB" stroke="#78350F" stroke-width="2"/>`,
+  oldWallet: `
+    <rect x="12" y="18" width="40" height="28" rx="6" fill="#A16207" stroke="#451A03" stroke-width="2.4"/>
+    <rect x="36" y="27" width="16" height="10" rx="3" fill="#CA8A04" stroke="#451A03" stroke-width="2"/>
+    <circle cx="42" cy="32" r="2" fill="#FEF08A"/>`,
+  tinyBell: `
+    <path d="M22 40 C22 24 42 24 42 40 L46 44 H18 Z" fill="#D97706" stroke="#78350F" stroke-width="2.4" stroke-linejoin="round"/>
+    <circle cx="32" cy="47" r="3.5" fill="#92400E"/>`,
+  paperClip: `
+    <path d="M24 22 V44 A8 8 0 0 0 40 44 V18 A5 5 0 0 0 30 18 V40 A2 2 0 0 0 34 40 V24" fill="none" stroke="#64748B" stroke-width="3.2" stroke-linecap="round"/>`,
+  luckyPenny: `
+    <circle cx="32" cy="32" r="18" fill="#F59E0B" stroke="#92400E" stroke-width="2.5"/>
+    <text x="32" y="38" text-anchor="middle" font-size="16" font-weight="900" fill="#FFFBEB">1</text>`,
+  eraser: `
+    <rect x="14" y="20" width="36" height="24" rx="5" fill="#F472B6" stroke="#9D174D" stroke-width="2.4"/>
+    <rect x="32" y="20" width="18" height="24" rx="4" fill="#60A5FA" stroke="#1E40AF" stroke-width="2.4"/>`
 };
