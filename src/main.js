@@ -43,7 +43,9 @@ import {
   openPoolModal,
   renderPoolModal,
   openCompendiumModal,
-  renderCompendium
+  renderCompendium,
+  openTurnBreakdownModal,
+  openMysteryDeviceModal
 } from './ui/modals.js';
 
 const MENU_TIPS = [
@@ -152,6 +154,7 @@ function runDraw() {
       hideTurnPayoutBanner,
       openPendingDraftModal,
       openNewShopVisit,
+      openMysteryDeviceModal,
       handleLevelClear,
       handleGameOver
     }
@@ -330,12 +333,24 @@ function bootstrap() {
     renderShopModal();
   });
 
-  // 详情弹窗
+  // 详情弹窗 & 本轮明细 & 神秘装置弹窗
   document.getElementById('closeInspectBtn').addEventListener('click', () => {
     document.getElementById('inspectModal').classList.add('hidden');
   });
   document.getElementById('inspectModal').addEventListener('click', e => {
     if (e.target.id === 'inspectModal') document.getElementById('inspectModal').classList.add('hidden');
+  });
+  document.getElementById('turnPayoutBanner').addEventListener('click', () => {
+    if (!state.lastTurnLog) return;
+    sound.playSelect(2);
+    openTurnBreakdownModal();
+  });
+  document.getElementById('closeTurnBreakdownBtn').addEventListener('click', () => {
+    document.getElementById('turnBreakdownModal').classList.add('hidden');
+  });
+  document.getElementById('closeMysteryDeviceBtn').addEventListener('click', () => {
+    sound.playSelect(3);
+    document.getElementById('mysteryDeviceModal').classList.add('hidden');
   });
 
   // 底部操作栏与暂存确认
