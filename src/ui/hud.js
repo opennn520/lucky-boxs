@@ -60,12 +60,16 @@ export function showTurnPayoutBanner(text) {
   banner.textContent = text;
   banner.style.opacity = '1';
   banner.style.transform = 'translate(-50%, -4px)';
+  banner.classList.remove('pointer-events-none');
+  banner.classList.add('pointer-events-auto', 'cursor-pointer');
 }
 
 export function hideTurnPayoutBanner() {
   const banner = document.getElementById('turnPayoutBanner');
   banner.style.opacity = '0';
   banner.style.transform = 'translate(-50%, 0)';
+  banner.classList.add('pointer-events-none');
+  banner.classList.remove('pointer-events-auto', 'cursor-pointer');
 }
 
 export function animateCoinsTo(targetVal) {
